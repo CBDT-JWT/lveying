@@ -56,7 +56,7 @@ export default function ProgramsPage() {
 
       <div className="max-w-2xl mx-auto px-4 pt-20">
         <div className="backdrop-blur-lg bg-white/30 rounded-2xl border border-white/20 shadow-2xl p-6">
-          <h1 className="text-2xl font-bold text-gray-800 drop-shadow-lg mb-6 text-center">节目进度</h1>
+          <h1 className="text-2xl font-bold text-gray-800 drop-shadow-lg mb-6 text-center">节目列表</h1>
 
           {/* 进度条 */}
           <div className="mb-6">
