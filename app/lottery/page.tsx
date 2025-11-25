@@ -108,7 +108,7 @@ export default function LotteryPage() {
                       </div>
                     ) : (
                       <div className="text-center py-6">
-                        <p className="text-gray-600 drop-shadow-md">请等待主持人开奖</p>
+                        <p className="text-gray-600 drop-shadow-md">请等待开奖</p>
                       </div>
                     )}
                   </div>
