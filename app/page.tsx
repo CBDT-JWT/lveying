@@ -26,7 +26,7 @@ export default function Home() {
               src="/poster.png" 
               alt="活动海报" 
               fill
-              className="object-cover rounded-xl"
+              className="object-contain rounded-xl"
               priority
             />
           </div>
