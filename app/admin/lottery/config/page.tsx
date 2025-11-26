@@ -56,7 +56,7 @@ export default function LotteryConfigPage() {
         },
       });
       const data = await response.json();
-      setHistory(data.results || []);
+      setHistory(data.history || []);
     } catch (error) {
       console.error('获取抽奖历史失败:', error);
     }
