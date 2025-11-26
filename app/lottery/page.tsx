@@ -13,6 +13,7 @@ interface LotteryResult {
 export default function LotteryPage() {
   const [allResults, setAllResults] = useState<LotteryResult[]>([]);
   const [loading, setLoading] = useState(true);
+  const [backgroundImages, setBackgroundImages] = useState<Record<string, string>>({});
 
   const fetchLotteryResults = async () => {
     try {
@@ -43,6 +44,23 @@ export default function LotteryPage() {
       .sort((a, b) => b.timestamp - a.timestamp)[0];
   };
 
+  // 为每个奖项分配随机背景图片
+  const getBackgroundImage = (prizeName: string) => {
+    if (!backgroundImages[prizeName]) {
+      const randomNum = Math.floor(Math.random() * 4) + 1;
+      setBackgroundImages(prev => ({
+        ...prev,
+        [prizeName]: `/max${randomNum}.jpg`
+      }));
+    }
+    return backgroundImages[prizeName] || '/max1.jpg';
+  };
+
+  // 格式化数字为6位
+  const formatNumber = (num: number) => {
+    return num.toString().padStart(6, '0');
+  };
+
   return (
     <div 
       className="min-h-screen"
@@ -56,76 +74,210 @@ export default function LotteryPage() {
       {/* 导航栏 */}
       <GuestNavBar />
 
-      <div className="max-w-4xl mx-auto px-4 pt-20 pb-8">
-        <div className="backdrop-blur-lg bg-white/30 rounded-2xl border border-white/20 shadow-2xl p-6">
-          <h1 className="text-2xl font-bold text-gray-800 drop-shadow-lg mb-6 text-center">抽奖结果</h1>
+      <div className="max-w-7xl mx-auto px-4 pt-20 pb-8">
+        <h1 className="text-3xl font-bold text-gray-800 drop-shadow-lg mb-8 text-center">抽奖结果</h1>
 
-          {loading ? (
-            <div className="text-center py-12">
-              <div className="inline-block animate-spin rounded-full h-12 w-12 border-4 border-purple-500 border-t-transparent"></div>
-              <p className="mt-4 text-gray-800 font-semibold drop-shadow-md">加载中...</p>
-            </div>
-          ) : (
-            <div className="space-y-6">
-              {prizeOrder.map((prizeName) => {
-                const result = getPrizeResult(prizeName);
-                
+        {loading ? (
+          <div className="text-center py-12">
+            <div className="inline-block animate-spin rounded-full h-12 w-12 border-4 border-purple-500 border-t-transparent"></div>
+            <p className="mt-4 text-gray-800 font-semibold drop-shadow-md">加载中...</p>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+            {prizeOrder.map((prizeName) => {
+              const result = getPrizeResult(prizeName);
+              
+              if (!result) {
                 return (
-                  <div key={prizeName} className="backdrop-blur-md bg-white/40 rounded-xl p-6 border border-white/20">
-                    {/* 奖项标题 */}
-                    <div className="text-center mb-4">
-                      <h2 className={`text-2xl font-bold drop-shadow-lg ${
-                        prizeName === '特等奖' ? 'text-yellow-600' :
-                        prizeName === '一等奖' ? 'text-red-600' :
-                        prizeName === '二等奖' ? 'text-orange-600' :
-                        'text-green-600'
-                      }`}>
-                        {prizeName}
-                      </h2>
+                  <div key={prizeName} className="backdrop-blur-md bg-white/40 rounded-xl p-8 border border-white/20">
+                    <h2 className={`text-2xl font-bold drop-shadow-lg text-center mb-4 ${
+                      prizeName === '特等奖' ? 'text-yellow-600' :
+                      prizeName === '一等奖' ? 'text-red-600' :
+                      prizeName === '二等奖' ? 'text-orange-600' :
+                      'text-green-600'
+                    }`}>
+                      {prizeName}
+                    </h2>
+                    <div className="text-center py-12">
+                      <p className="text-gray-600 drop-shadow-md">请等待开奖</p>
                     </div>
-
-                    {result ? (
-                      <div className="space-y-3">
-                        {/* 中奖号码 - 每行一个 */}
-                        <div className="backdrop-blur-md bg-gradient-to-r from-purple-400/30 to-pink-400/30 rounded-lg p-4 border border-white/20">
-                          <div className="space-y-2">
-                            {result.numbers.map((number, index) => (
-                              <div
-                                key={index}
-                                className="backdrop-blur-md bg-white/80 rounded-lg p-3 text-center shadow-md border border-white/30"
-                              >
-                                <div className="text-2xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-purple-600 to-pink-600">
-                                  {number}
-                                </div>
-                              </div>
-                            ))}
-                          </div>
-                        </div>
-                        {/* 开奖时间 */}
-                        <div className="text-center text-xs text-gray-700 drop-shadow-md">
-                          开奖时间: {new Date(result.timestamp).toLocaleString('zh-CN')}
-                        </div>
-                      </div>
-                    ) : (
-                      <div className="text-center py-6">
-                        <p className="text-gray-600 drop-shadow-md">请等待开奖</p>
-                      </div>
-                    )}
                   </div>
                 );
-              })}
-            </div>
-          )}
-        </div>
-        
-        {/* 制作信息 */}
-        <div className="text-center mt-4 pb-4">
-          <p className="text-sm text-gray-800 drop-shadow-md">
-            © 2025 <a href="https://www.jiangwt.org" target="_blank" rel="noopener noreferrer" className="hover:underline">江玮陶</a>
-            {' | '}
-            <a href="https://github.com/CBDT-JWT/lveying" target="_blank" rel="noopener noreferrer" className="hover:underline">Github</a>
-          </p>
-        </div>
+              }
+
+              // 拍立得尺寸计算 - 适配小屏幕
+              const containerWidth = 400; // 固定容器宽度
+              const containerHeight = 300; // 固定容器高度
+              
+              const targetRatio = 99 / 62;
+              let finalBlackWidth = containerWidth * 0.8;
+              let finalBlackHeight = containerHeight * 0.7;
+              
+              if (finalBlackWidth / finalBlackHeight > targetRatio) {
+                finalBlackWidth = finalBlackHeight * targetRatio;
+              } else {
+                finalBlackHeight = finalBlackWidth / targetRatio;
+              }
+              
+              const borderSize = 4.5 / 62 * finalBlackHeight;
+              const whiteFrameWidth = finalBlackWidth + borderSize * 2;
+              const whiteFrameHeight = finalBlackHeight + borderSize * 2;
+              const bottomBarHeight = (15 / 62) * finalBlackHeight;
+              
+              return (
+                <div key={prizeName} className="backdrop-blur-md bg-white/40 rounded-xl p-6 border border-white/20">
+                  {/* 奖项标题 */}
+                  <h2 className={`text-2xl font-bold drop-shadow-lg text-center mb-4 ${
+                    prizeName === '特等奖' ? 'text-yellow-600' :
+                    prizeName === '一等奖' ? 'text-red-600' :
+                    prizeName === '二等奖' ? 'text-orange-600' :
+                    'text-green-600'
+                  }`}>
+                    {prizeName}
+                  </h2>
+
+                  {/* 拍立得容器 */}
+                  <div className="relative mx-auto" style={{ width: `${containerWidth}px`, height: `${containerHeight}px` }}>
+                    {/* 白色外框 */}
+                    <div 
+                      className="absolute"
+                      style={{
+                        left: '50%',
+                        top: '50%',
+                        transform: 'translate(-50%, -50%)',
+                        width: `${whiteFrameWidth}px`,
+                        height: `${whiteFrameHeight}px`,
+                        backgroundColor: 'white',
+                        boxShadow: '0 10px 30px rgba(0, 0, 0, 0.3)',
+                        zIndex: 1,
+                      }}
+                    />
+                    
+                    {/* 背景图片层 */}
+                    <div 
+                      className="absolute"
+                      style={{
+                        left: '50%',
+                        top: '50%',
+                        transform: 'translate(-50%, -50%)',
+                        width: `${finalBlackWidth}px`,
+                        height: `${finalBlackHeight}px`,
+                        backgroundImage: `url(${getBackgroundImage(prizeName)})`,
+                        backgroundSize: 'cover',
+                        backgroundPosition: 'center',
+                        zIndex: 2,
+                      }}
+                    />
+                    
+                    {/* 黑色半透明遮罩 */}
+                    <div 
+                      className="absolute"
+                      style={{
+                        left: '50%',
+                        top: '50%',
+                        transform: 'translate(-50%, -50%)',
+                        width: `${finalBlackWidth}px`,
+                        height: `${finalBlackHeight}px`,
+                        backgroundColor: 'black',
+                        opacity: 0.5,
+                        zIndex: 3,
+                      }}
+                    />
+                    
+                    {/* 数字显示 */}
+                    <div 
+                      className="absolute flex flex-wrap items-center justify-center px-4"
+                      style={{
+                        left: '50%',
+                        top: `calc(50% - ${bottomBarHeight / 2}px)`,
+                        transform: 'translate(-50%, -50%)',
+                        width: `${finalBlackWidth}px`,
+                        zIndex: 4,
+                        gap: '4px', // 减小间距
+                        rowGap: '0px', // 行间距更小
+                      }}
+                    >
+                      {result.numbers.map((number, index) => (
+                        <div
+                          key={index}
+                          className="text-white font-bold"
+                          style={{
+                            fontSize: '22px',
+                            fontFamily: 'monospace',
+                            textShadow: '0 0 20px rgba(255, 255, 255, 0.5), 0 0 40px rgba(255, 215, 0, 0.8)',
+                          }}
+                        >
+                          {formatNumber(number)}
+                        </div>
+                      ))}
+                    </div>
+                    
+                    {/* 底部白色信息栏 */}
+                    <div 
+                      className="absolute flex items-center justify-between px-3"
+                      style={{
+                        left: '50%',
+                        top: `calc(50% + ${finalBlackHeight / 2}px - ${bottomBarHeight}px)`,
+                        transform: 'translateX(-50%)',
+                        width: `${whiteFrameWidth}px`,
+                        height: `${bottomBarHeight}px`,
+                        backgroundColor: 'white',
+                        zIndex: 5,
+                      }}
+                    >
+                      {/* 左侧 - 掠影2025 */}
+                      <span 
+                        className="font-bold text-gray-700"
+                        style={{
+                          fontSize: `${(4 / 62) * finalBlackHeight}px`,
+                          fontFamily: 'serif',
+                        }}
+                      >
+                        掠影2025
+                      </span>
+                      
+                      {/* 中间 - 日期 */}
+                      <span 
+                        className="font-bold text-gray-700"
+                        style={{
+                          fontSize: `${(4 / 62) * finalBlackHeight}px`,
+                          fontFamily: 'serif',
+                        }}
+                      >
+                        {new Date(result.timestamp).toISOString().split('T')[0]}
+                      </span>
+                      
+                      {/* 右侧 - 奖项名称 */}
+                      <span 
+                        className="font-bold text-gray-700"
+                        style={{
+                          fontSize: `${(4 / 62) * finalBlackHeight}px`,
+                          fontFamily: 'serif',
+                        }}
+                      >
+                        {prizeName}
+                      </span>
+                    </div>
+                  </div>
+                  
+                  {/* 开奖时间 */}
+                  <div className="text-center text-xs text-gray-700 drop-shadow-md mt-4">
+                    开奖时间: {new Date(result.timestamp).toLocaleString('zh-CN')}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        )}
+      </div>
+      
+      {/* 制作信息 */}
+      <div className="text-center mt-4 pb-4">
+        <p className="text-sm text-gray-800 drop-shadow-md">
+          © 2025 <a href="https://www.jiangwt.org" target="_blank" rel="noopener noreferrer" className="hover:underline">江玮陶</a>
+          {' | '}
+          <a href="https://github.com/CBDT-JWT/lveying" target="_blank" rel="noopener noreferrer" className="hover:underline">Github</a>
+        </p>
       </div>
     </div>
   );
