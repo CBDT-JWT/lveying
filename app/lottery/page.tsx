@@ -137,7 +137,7 @@ export default function LotteryPage() {
                   </h2>
 
                   {/* 拍立得容器 */}
-                  <div className="relative mx-auto" style={{ width: `${containerWidth}px`, height: `${containerHeight}px` }}>
+                  <div className="relative mx-auto flex items-center justify-center" style={{ width: '100%', maxWidth: `${containerWidth}px`, height: `${containerHeight}px` }}>
                     {/* 白色外框 */}
                     <div 
                       className="absolute"
