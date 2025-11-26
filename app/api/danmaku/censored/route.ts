@@ -1,6 +1,10 @@
 import { NextResponse } from 'next/server';
 import { dataStore } from '@/lib/dataStore';
 
+// 禁用缓存，确保每次都获取最新数据
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
+
 // GET - 获取已审核的弹幕（公开接口）
 export async function GET() {
   try {
