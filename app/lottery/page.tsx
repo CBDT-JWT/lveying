@@ -86,9 +86,9 @@ export default function LotteryPage() {
 
                     {result ? (
                       <div className="space-y-3">
-                        {/* 中奖号码 */}
+                        {/* 中奖号码 - 每行一个 */}
                         <div className="backdrop-blur-md bg-gradient-to-r from-purple-400/30 to-pink-400/30 rounded-lg p-4 border border-white/20">
-                          <div className="grid grid-cols-5 gap-2">
+                          <div className="space-y-2">
                             {result.numbers.map((number, index) => (
                               <div
                                 key={index}
