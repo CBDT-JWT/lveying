@@ -2,6 +2,10 @@ import { NextResponse } from 'next/server';
 import { verifyToken, getTokenFromRequest } from '@/lib/auth';
 import { dataStore } from '@/lib/dataStore';
 
+// 禁用缓存，确保每次都获取最新数据
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
+
 // 验证管理员权限
 function verifyAdmin(request: Request) {
   const token = getTokenFromRequest(request);
