@@ -27,6 +27,7 @@ export default function LotteryDisplayPage() {
   const [usedNumbers, setUsedNumbers] = useState<Set<number>>(new Set()); // 已经抽过的号码
   const animationFrameRef = useRef<number>();
   const lastTimeRef = useRef<number>(0);
+  const shutterAudioRef = useRef<HTMLAudioElement | null>(null); // 快门音效引用
   const router = useRouter();
 
   // 根据数量计算需要的行数（每行最多3个）
@@ -82,6 +83,12 @@ export default function LotteryDisplayPage() {
     }
     fetchConfig();
     loadLotteryTitle();
+    
+    // 初始化音频
+    if (typeof window !== 'undefined') {
+      shutterAudioRef.current = new Audio('/shutter.mp3');
+      shutterAudioRef.current.preload = 'auto';
+    }
   }, [router]);
 
   useEffect(() => {
@@ -223,86 +230,95 @@ export default function LotteryDisplayPage() {
   };
 
   const stopLottery = () => {
+    // 播放快门音效
+    if (shutterAudioRef.current) {
+      shutterAudioRef.current.currentTime = 0; // 重置到开始
+      shutterAudioRef.current.play().catch(err => console.log('音效播放失败:', err));
+    }
+    
     // 随机选择背景图片 (1-4)
     const randomImageNum = Math.floor(Math.random() * 4) + 1;
     setBackgroundImage(`/max${randomImageNum}.jpg`);
     
-    // 触发白色闪光效果
-    setFlashEffect(true);
-    
-    // 从当前屏幕上的所有数字中选择，确保横向分散且不重复
-    const allNumbers = flyingNumbers.filter(num => 
-      num.position >= 10 && 
-      num.position <= 90 && 
-      !usedNumbers.has(num.value) // 排除已使用的号码
-    );
-    
-    // 按横向位置排序
-    const sortedByPosition = [...allNumbers].sort((a, b) => a.position - b.position);
-    
-    let selectedNumbers: FlyingNumber[] = [];
-    const step = Math.floor(sortedByPosition.length / config.count);
-    
-    // 从排序后的数组中等间隔选择数字
-    for (let i = 0; i < config.count && i * step < sortedByPosition.length; i++) {
-      selectedNumbers.push(sortedByPosition[i * step]);
-    }
-    
-    // 如果数量不够，补充随机数字（不重复）
-    const requiredRows = calculateRows(config.count);
-    while (selectedNumbers.length < config.count) {
-      const index = selectedNumbers.length;
-      const newNumber = generateRandomNumber();
-      selectedNumbers.push({
-        id: `final-${index}`,
-        value: newNumber,
-        row: index % requiredRows,
-        position: 20 + (index * 60 / config.count),
-        index: index,
-      });
-    }
-    
-    // 计算所有选中数字的整体中心，并调整位置使其左右居中
-    if (selectedNumbers.length > 0) {
-      // 重新排列数字位置，使用增大的间距
-      const requiredRows = calculateRows(selectedNumbers.length);
-      const numbersPerRow = Math.ceil(selectedNumbers.length / requiredRows);
-      const numberSpacing = 15; // 使用10%的间距（与飞行数字一致）
-      
-      // 计算每行的总宽度
-      const rowWidth = (numbersPerRow - 1) * numberSpacing;
-      
-      selectedNumbers = selectedNumbers.map((num, index) => {
-        const rowIndex = Math.floor(index / numbersPerRow);
-        const posInRow = index % numbersPerRow;
-        const numbersInThisRow = Math.min(numbersPerRow, selectedNumbers.length - rowIndex * numbersPerRow);
-        const thisRowWidth = (numbersInThisRow - 1) * numberSpacing;
-        
-        // 居中计算：从50%开始，减去半个行宽，再加上当前位置
-        const position = 50 - thisRowWidth / 2 + posInRow * numberSpacing;
-        
-        return {
-          ...num,
-          row: rowIndex,
-          position: position,
-        };
-      });
-    }
-    
-    // 在闪光效果期间停止滚动和设置最终数字
+    // 延迟0.5秒后触发闪光和定格
     setTimeout(() => {
-      setRolling(false);
-      setFlyingNumbers(selectedNumbers); // 居中后的位置
-      setFinalNumbers(selectedNumbers.map(n => n.value));
-      setFlashEffect(false);
+      // 触发白色闪光效果
+      setFlashEffect(true);
       
-      // 停止动画
-      if (animationFrameRef.current) {
-        cancelAnimationFrame(animationFrameRef.current);
+      // 从当前屏幕上的所有数字中选择，确保横向分散且不重复
+      const allNumbers = flyingNumbers.filter(num => 
+        num.position >= 10 && 
+        num.position <= 90 && 
+        !usedNumbers.has(num.value) // 排除已使用的号码
+      );
+      
+      // 按横向位置排序
+      const sortedByPosition = [...allNumbers].sort((a, b) => a.position - b.position);
+      
+      let selectedNumbers: FlyingNumber[] = [];
+      const step = Math.floor(sortedByPosition.length / config.count);
+      
+      // 从排序后的数组中等间隔选择数字
+      for (let i = 0; i < config.count && i * step < sortedByPosition.length; i++) {
+        selectedNumbers.push(sortedByPosition[i * step]);
       }
       
-      submitLotteryResult(selectedNumbers.map(n => n.value));
-    }, 100);
+      // 如果数量不够，补充随机数字（不重复）
+      const requiredRows = calculateRows(config.count);
+      while (selectedNumbers.length < config.count) {
+        const index = selectedNumbers.length;
+        const newNumber = generateRandomNumber();
+        selectedNumbers.push({
+          id: `final-${index}`,
+          value: newNumber,
+          row: index % requiredRows,
+          position: 20 + (index * 60 / config.count),
+          index: index,
+        });
+      }
+      
+      // 计算所有选中数字的整体中心，并调整位置使其左右居中
+      if (selectedNumbers.length > 0) {
+        // 重新排列数字位置，使用增大的间距
+        const requiredRows = calculateRows(selectedNumbers.length);
+        const numbersPerRow = Math.ceil(selectedNumbers.length / requiredRows);
+        const numberSpacing = 15; // 使用10%的间距（与飞行数字一致）
+        
+        // 计算每行的总宽度
+        const rowWidth = (numbersPerRow - 1) * numberSpacing;
+        
+        selectedNumbers = selectedNumbers.map((num, index) => {
+          const rowIndex = Math.floor(index / numbersPerRow);
+          const posInRow = index % numbersPerRow;
+          const numbersInThisRow = Math.min(numbersPerRow, selectedNumbers.length - rowIndex * numbersPerRow);
+          const thisRowWidth = (numbersInThisRow - 1) * numberSpacing;
+          
+          // 居中计算：从50%开始，减去半个行宽，再加上当前位置
+          const position = 50 - thisRowWidth / 2 + posInRow * numberSpacing;
+          
+          return {
+            ...num,
+            row: rowIndex,
+            position: position,
+          };
+        });
+      }
+      
+      // 在闪光效果期间停止滚动和设置最终数字
+      setTimeout(() => {
+        setRolling(false);
+        setFlyingNumbers(selectedNumbers); // 居中后的位置
+        setFinalNumbers(selectedNumbers.map(n => n.value));
+        setFlashEffect(false);
+        
+        // 停止动画
+        if (animationFrameRef.current) {
+          cancelAnimationFrame(animationFrameRef.current);
+        }
+        
+        submitLotteryResult(selectedNumbers.map(n => n.value));
+      }, 100);
+    }, 100); // 延迟0.2秒
   };
 
   const submitLotteryResult = async (numbers: number[]) => {
