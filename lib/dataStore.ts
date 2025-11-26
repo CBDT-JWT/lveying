@@ -81,10 +81,11 @@ class DataStore {
     return { ...this.defaultData };
   }
 
-  // 保存数据到JSON文件
+  // 保存数据到JSON文件（同步写入，确保数据持久化）
   private saveData(data?: DataStoreState): void {
     try {
       const dataToSave = data || this.data;
+      // 使用同步写入确保数据立即持久化
       fs.writeFileSync(
         this.dataFilePath,
         JSON.stringify(dataToSave, null, 2),
@@ -93,11 +94,28 @@ class DataStore {
       console.log('💾 数据已保存到文件');
     } catch (error) {
       console.error('❌ 保存数据文件失败:', error);
+      // 如果保存失败，抛出错误以便上层处理
+      throw error;
+    }
+  }
+
+  // 重新加载数据（从文件读取最新数据）
+  private reloadData(): void {
+    try {
+      if (fs.existsSync(this.dataFilePath)) {
+        const fileContent = fs.readFileSync(this.dataFilePath, 'utf-8');
+        this.data = JSON.parse(fileContent);
+        console.log('🔄 数据已重新加载');
+      }
+    } catch (error) {
+      console.error('❌ 重新加载数据失败:', error);
     }
   }
 
   // 节目单相关方法
   getPrograms(): Program[] {
+    // 从文件重新加载以确保数据最新
+    this.reloadData();
     return [...this.data.programs].sort((a, b) => a.order - b.order);
   }
 
@@ -164,11 +182,15 @@ class DataStore {
 
   // 弹幕相关方法
   getDanmakus(): Danmaku[] {
+    // 从文件重新加载以确保数据最新
+    this.reloadData();
     return [...this.data.danmakus].sort((a, b) => b.timestamp - a.timestamp);
   }
 
   // 获取已审核的弹幕
   getCensoredDanmakus(): Danmaku[] {
+    // 从文件重新加载以确保数据最新
+    this.reloadData();
     return [...this.data.danmakus]
       .filter((d) => d.censor === true)
       .sort((a, b) => {
@@ -180,6 +202,9 @@ class DataStore {
   }
 
   addDanmaku(content: string): Danmaku {
+    // 在添加前重新加载数据，确保基于最新状态
+    this.reloadData();
+    
     const danmaku: Danmaku = {
       id: Date.now().toString(),
       content,
@@ -193,6 +218,9 @@ class DataStore {
 
   // 更新弹幕审核状态
   updateDanmakuCensor(id: string, censor: boolean): boolean {
+    // 在修改前重新加载数据，确保基于最新状态进行修改
+    this.reloadData();
+    
     const danmaku = this.data.danmakus.find((d) => d.id === id);
     if (danmaku) {
       danmaku.censor = censor;
@@ -216,6 +244,8 @@ class DataStore {
 
   // 抽奖相关方法
   getLotteryConfig(): LotteryConfig {
+    // 从文件重新加载以确保数据最新
+    this.reloadData();
     return { ...this.data.lotteryConfig };
   }
 
@@ -241,11 +271,15 @@ class DataStore {
 
   // 获取所有抽奖结果（按时间倒序）
   getAllLotteryResults(): LotteryResult[] {
+    // 从文件重新加载以确保数据最新
+    this.reloadData();
     return [...this.data.lotteryResults].sort((a, b) => b.timestamp - a.timestamp);
   }
 
   // 获取最新的抽奖结果
   getLatestLotteryResult(): LotteryResult | null {
+    // 从文件重新加载以确保数据最新
+    this.reloadData();
     if (this.data.lotteryResults.length === 0) {
       return null;
     }
