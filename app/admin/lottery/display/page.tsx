@@ -23,13 +23,38 @@ export default function LotteryDisplayPage() {
   const [finalNumbers, setFinalNumbers] = useState<number[]>([]);
   const [flyingNumbers, setFlyingNumbers] = useState<FlyingNumber[]>([]);
   const [flashEffect, setFlashEffect] = useState(false); // 白色闪光效果
+  const [backgroundImage, setBackgroundImage] = useState(''); // 随机背景图片
+  const [usedNumbers, setUsedNumbers] = useState<Set<number>>(new Set()); // 已经抽过的号码
   const animationFrameRef = useRef<number>();
   const lastTimeRef = useRef<number>(0);
   const router = useRouter();
 
-  // 根据数量计算需要的行数（每行最多6个）
+  // 根据数量计算需要的行数（每行最多3个）
   const calculateRows = (count: number) => {
-    return Math.ceil(count / 6);
+    return Math.ceil(count / 3);
+  };
+
+  // 格式化数字为6位，前面补0
+  const formatNumber = (num: number) => {
+    return num.toString().padStart(6, '0');
+  };
+
+  // 生成随机数，排除已使用的号码
+  const generateRandomNumber = (): number => {
+    const availableNumbers = [];
+    for (let i = config.minNumber; i <= config.maxNumber; i++) {
+      if (!usedNumbers.has(i)) {
+        availableNumbers.push(i);
+      }
+    }
+    
+    // 如果没有可用号码了，返回随机数（不限制）
+    if (availableNumbers.length === 0) {
+      return Math.floor(Math.random() * (config.maxNumber - config.minNumber + 1)) + config.minNumber;
+    }
+    
+    // 从可用号码中随机选择
+    return availableNumbers[Math.floor(Math.random() * availableNumbers.length)];
   };
 
   // 根据行数计算每行的垂直位置
@@ -64,14 +89,14 @@ export default function LotteryDisplayPage() {
       // 根据配置的数量计算需要的行数
       const requiredRows = calculateRows(config.count);
       const initialNumbers: FlyingNumber[] = [];
-      const spacing = 5; // 每个数字间隔5%（减小间距）
+      const spacing = 15; // 每个数字间隔15%（增大间距）
       
       // 生成对应行数的数字流
       for (let rowIndex = 0; rowIndex < requiredRows; rowIndex++) {
         for (let i = 0; i < 100; i++) {
           initialNumbers.push({
             id: `row${rowIndex}-${i}`,
-            value: Math.floor(Math.random() * (config.maxNumber - config.minNumber + 1)) + config.minNumber,
+            value: generateRandomNumber(), // 使用新函数生成不重复的号码
             row: rowIndex,
             position: i * spacing,
             index: i,
@@ -95,7 +120,7 @@ export default function LotteryDisplayPage() {
         if (deltaTime > 0 && deltaTime < 100) {
           setFlyingNumbers(prev => {
             const updated = prev.map(num => {
-              const speed = 1; // 每帧移动1%
+              const speed = 2; // 每帧移动2%（速度增加一倍）
               const totalLength = 100 * spacing; // 总长度 1000%
               
               // row 0 和 2：从左向右
@@ -162,17 +187,55 @@ export default function LotteryDisplayPage() {
     }
   };
 
-  const startLottery = () => {
+  const fetchUsedNumbers = async () => {
+    const token = localStorage.getItem('adminToken');
+    if (!token) return;
+
+    try {
+      const response = await fetch('/api/lottery/history', {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      const data = await response.json();
+      
+      // 提取所有历史抽奖中的号码
+      const used = new Set<number>();
+      if (data.history && Array.isArray(data.history)) {
+        data.history.forEach((result: any) => {
+          if (result.numbers && Array.isArray(result.numbers)) {
+            result.numbers.forEach((num: number) => used.add(num));
+          }
+        });
+      }
+      setUsedNumbers(used);
+      console.log('已使用的号码:', Array.from(used));
+    } catch (error) {
+      console.error('获取历史抽奖失败:', error);
+    }
+  };
+
+  const startLottery = async () => {
+    // 先获取已使用的号码
+    await fetchUsedNumbers();
     setRolling(true);
     setFinalNumbers([]);
   };
 
   const stopLottery = () => {
+    // 随机选择背景图片 (1-4)
+    const randomImageNum = Math.floor(Math.random() * 4) + 1;
+    setBackgroundImage(`/max${randomImageNum}.jpg`);
+    
     // 触发白色闪光效果
     setFlashEffect(true);
     
-    // 从当前屏幕上的所有数字中选择，确保横向分散
-    const allNumbers = flyingNumbers.filter(num => num.position >= 10 && num.position <= 90);
+    // 从当前屏幕上的所有数字中选择，确保横向分散且不重复
+    const allNumbers = flyingNumbers.filter(num => 
+      num.position >= 10 && 
+      num.position <= 90 && 
+      !usedNumbers.has(num.value) // 排除已使用的号码
+    );
     
     // 按横向位置排序
     const sortedByPosition = [...allNumbers].sort((a, b) => a.position - b.position);
@@ -185,13 +248,14 @@ export default function LotteryDisplayPage() {
       selectedNumbers.push(sortedByPosition[i * step]);
     }
     
-    // 如果数量不够，补充随机数字
+    // 如果数量不够，补充随机数字（不重复）
     const requiredRows = calculateRows(config.count);
     while (selectedNumbers.length < config.count) {
       const index = selectedNumbers.length;
+      const newNumber = generateRandomNumber();
       selectedNumbers.push({
         id: `final-${index}`,
-        value: Math.floor(Math.random() * (config.maxNumber - config.minNumber + 1)) + config.minNumber,
+        value: newNumber,
         row: index % requiredRows,
         position: 20 + (index * 60 / config.count),
         index: index,
@@ -200,10 +264,10 @@ export default function LotteryDisplayPage() {
     
     // 计算所有选中数字的整体中心，并调整位置使其左右居中
     if (selectedNumbers.length > 0) {
-      // 重新排列数字位置，使用紧密的间距
+      // 重新排列数字位置，使用增大的间距
       const requiredRows = calculateRows(selectedNumbers.length);
       const numbersPerRow = Math.ceil(selectedNumbers.length / requiredRows);
-      const numberSpacing = 5; // 使用5%的间距（与飞行数字一致）
+      const numberSpacing = 15; // 使用10%的间距（与飞行数字一致）
       
       // 计算每行的总宽度
       const rowWidth = (numbersPerRow - 1) * numberSpacing;
@@ -238,7 +302,7 @@ export default function LotteryDisplayPage() {
       }
       
       submitLotteryResult(selectedNumbers.map(n => n.value));
-    }, 200);
+    }, 100);
   };
 
   const submitLotteryResult = async (numbers: number[]) => {
@@ -284,53 +348,41 @@ export default function LotteryDisplayPage() {
       {/* 高亮闪光效果 - 高亮度高透明度 */}
       <div 
         className={`absolute inset-0 bg-white transition-opacity ${
-          flashEffect ? 'opacity-80' : 'opacity-0'
+          flashEffect ? 'opacity-95' : 'opacity-0'
         }`}
         style={{ 
           pointerEvents: 'none',
-          transitionDuration: flashEffect ? '0ms' : '300ms',
-          filter: 'brightness(2)'
+          transitionDuration: flashEffect ? '0ms' : '100ms',
+          transitionTimingFunction: 'ease-out',
+          filter: 'brightness(3)'
         }}
       />
       {/* 停止时显示拍立得背景 - 包裹所有数字 */}
       {!rolling && finalNumbers.length > 0 && (
         (() => {
-          // 计算所有数字的边界框
-          const totalRows = calculateRows(finalNumbers.length);
-          const numbersPerRow = Math.ceil(finalNumbers.length / totalRows);
+          // 使用与取景框一致的尺寸
+          // 取景框是屏幕宽度的60%，高度的50%
+          const viewportWidth = typeof window !== 'undefined' ? window.innerWidth : 1920;
+          const viewportHeight = typeof window !== 'undefined' ? window.innerHeight : 1080;
           
-          // 数字实际占用的空间
-          const singleNumberWidth = 50; // 单个数字的宽度（减小）
-          const singleNumberHeight = 60; // 单个数字的高度（减小）
-          const horizontalGap = 5; // 数字之间的水平间距（进一步减小）
-          const verticalGap = 10; // 行之间的垂直间距（进一步减小）
+          // 黑框尺寸与取景框一致
+          const frameWidth = viewportWidth * 0.6; // 60% 宽度
+          const frameHeight = viewportHeight * 0.5; // 50% 高度
           
-          // 黑框需要的尺寸（恰好容纳所有数字，左右留一点余量）
-          const horizontalPadding = 50; // 黑框左右内边距（减小）
-          const verticalPadding = 50; // 黑框上下内边距（减小）
-          
-          const blackBoxWidth = numbersPerRow * singleNumberWidth + (numbersPerRow - 1) * horizontalGap + horizontalPadding * 2;
-          const blackBoxHeight = totalRows * singleNumberHeight + (totalRows - 1) * verticalGap + verticalPadding * 2;
-          
-          // 保持99:62的宽高比
+          // 保持99:62的宽高比调整
           const targetRatio = 99 / 62;
-          let finalBlackWidth = blackBoxWidth;
-          let finalBlackHeight = blackBoxHeight;
+          let finalBlackWidth = frameWidth;
+          let finalBlackHeight = frameHeight;
           
-          if (blackBoxWidth / blackBoxHeight > targetRatio) {
-            // 太宽，增加高度
-            finalBlackHeight = blackBoxWidth / targetRatio;
+          if (frameWidth / frameHeight > targetRatio) {
+            // 太宽，减小宽度以保持比例
+            finalBlackWidth = frameHeight * targetRatio;
           } else {
-            // 太窄，增加宽度
-            finalBlackWidth = blackBoxHeight * targetRatio;
+            // 太窄，减小高度以保持比例
+            finalBlackHeight = frameWidth / targetRatio;
           }
           
-          // 所有尺寸 * 1.2 增加余量
-          const scaleFactor = 1.2;
-          finalBlackWidth *= scaleFactor;
-          finalBlackHeight *= scaleFactor;
-          
-          // 白色边框尺寸（基础值 * 3）
+          // 白色边框尺寸
           let leftWhite = 4.5 / 62 * finalBlackHeight;
           let rightWhite = 4.5 / 62 * finalBlackHeight;
           let topWhite = 4.5 / 62 * finalBlackHeight;
@@ -341,7 +393,7 @@ export default function LotteryDisplayPage() {
           let whiteFrameHeight = finalBlackHeight + topWhite + bottomWhite;
           
           // 向上偏移量改为0，让拍立得居中
-          const verticalOffset = 0;
+          const verticalOffset = 30;
           
           return (
             <>
@@ -360,7 +412,23 @@ export default function LotteryDisplayPage() {
                 }}
               />
               
-              {/* 黑色内框 - 在白框基础上向内偏移 */}
+              {/* 背景图片层 - 在黑框下方 */}
+              <div 
+                className="absolute pointer-events-none"
+                style={{
+                  left: '50%',
+                  top: `calc(50% + ${verticalOffset}px)`,
+                  transform: 'translate(-50%, -50%)',
+                  width: `${finalBlackWidth}px`,
+                  height: `${finalBlackHeight}px`,
+                  backgroundImage: `url(${backgroundImage})`,
+                  backgroundSize: 'cover',
+                  backgroundPosition: 'center',
+                  zIndex: 2,
+                }}
+              />
+              
+              {/* 黑色内框 - 半透明 */}
               <div 
                 className="absolute pointer-events-none"
                 style={{
@@ -370,7 +438,8 @@ export default function LotteryDisplayPage() {
                   width: `${finalBlackWidth}px`,
                   height: `${finalBlackHeight}px`,
                   backgroundColor: 'black',
-                  zIndex: 2,
+                  opacity: 0.5,
+                  zIndex: 3,
                 }}
               />
               
@@ -384,7 +453,7 @@ export default function LotteryDisplayPage() {
                   width: `${whiteFrameWidth}px`,
                   height: `${(15 / 62) * finalBlackHeight}px`,
                   backgroundColor: 'white',
-                  zIndex: 3,
+                  zIndex: 4,
                 }}
               />
             </>
@@ -397,7 +466,7 @@ export default function LotteryDisplayPage() {
         // 根据当前配置计算行位置
         const totalRows = rolling ? calculateRows(config.count) : calculateRows(finalNumbers.length);
         const rowPositions = getRowPositions(totalRows);
-        const verticalOffset = -60; // 改为0，让数字在屏幕上下居中
+        const verticalOffset = -30; // 向上移动30px
         
         return (
           <div
@@ -418,9 +487,10 @@ export default function LotteryDisplayPage() {
                 color: rolling ? 'white' : 'white',
                 opacity: rolling ? 0.7 : 1,
                 textShadow: rolling ? 'none' : '0 0 20px rgba(255, 255, 255, 0.5), 0 0 40px rgba(255, 215, 0, 0.8)',
+                fontFamily: 'monospace', // 使用等宽字体确保对齐
               }}
             >
-              {num.value}
+              {formatNumber(num.value)}
             </span>
           </div>
         );
@@ -434,9 +504,10 @@ export default function LotteryDisplayPage() {
             style={{ animation: 'rec-blink 1s step-end infinite' }}
           ></div>
           <span 
-            className="text-red-600 text-2xl"
+            className="text-red-600 text-4xl"
             style={{ 
               fontWeight: 900,
+              fontFamily: 'monospace',
               animation: 'rec-blink 1s step-end infinite'
             }}
           >
