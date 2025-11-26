@@ -461,7 +461,7 @@ export default function LotteryDisplayPage() {
               
               {/* 底部白色矩形 */}
               <div 
-                className="absolute pointer-events-none"
+                className="absolute pointer-events-none flex items-center justify-between px-6"
                 style={{
                   left: '50%',
                   top: `calc(50% + ${verticalOffset}px + ${finalBlackHeight / 2}px - ${(15 / 62) * finalBlackHeight}px)`,
@@ -471,7 +471,40 @@ export default function LotteryDisplayPage() {
                   backgroundColor: 'white',
                   zIndex: 4,
                 }}
-              />
+              >
+                {/* 左侧文字 - 掠影2025 */}
+                <span 
+                  className="font-bold text-gray-700"
+                  style={{
+                    fontSize: `${(4 / 62) * finalBlackHeight}px`,
+                    fontFamily: 'serif',
+                  }}
+                >
+                  掠影2025
+                </span>
+                
+                {/* 中间文字 - 日期 */}
+                <span 
+                  className="font-bold text-gray-700 absolute left-1/2 transform -translate-x-1/2"
+                  style={{
+                    fontSize: `${(4 / 62) * finalBlackHeight}px`,
+                    fontFamily: 'serif',
+                  }}
+                >
+                  {new Date().toISOString().split('T')[0]}
+                </span>
+                
+                {/* 右侧文字 - 奖项名称 */}
+                <span 
+                  className="font-bold text-gray-700"
+                  style={{
+                    fontSize: `${(4 / 62) * finalBlackHeight}px`,
+                    fontFamily: 'serif',
+                  }}
+                >
+                  {lotteryTitle}
+                </span>
+              </div>
             </>
           );
         })()
