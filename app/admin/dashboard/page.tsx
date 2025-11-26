@@ -75,6 +75,15 @@ export default function AdminDashboard() {
             <p className="text-purple-100">配置抽奖参数和查看历史</p>
           </Link>
 
+          <Link
+            href="/admin/change-password"
+            className="bg-gradient-to-br from-amber-500 to-yellow-600 rounded-2xl shadow-lg hover:shadow-2xl transform hover:scale-105 transition-all p-8 text-white"
+          >
+            <div className="text-5xl mb-4">🔐</div>
+            <h2 className="text-2xl font-bold mb-2">修改密码</h2>
+            <p className="text-amber-100">更改管理员登录密码</p>
+          </Link>
+
           <a
             href="/admin/lottery/display"
             target="_blank"
