@@ -23,7 +23,22 @@ jobs:
 
       - name: Build
         run: npm run build
-
+      - name: Send email notification
+        if: always()   # 无论成功失败都发；如果只想失败发，用 failure()
+        uses: dawidd6/action-send-mail@v3
+        with:
+          server_address: smtp.larksuite.com
+          server_port: 465
+          username: ${{ secrets.MAIL_USER }}
+          password: ${{ secrets.MAIL_PASS }}
+          subject: "CI result: ${{ job.status }} for ${{ github.repository }}"
+          to: "jiangwt23@mails.tsinghua.edu.cn"
+          from: "CI Bot <ci@example.com>"
+          body: |
+            Workflow: ${{ github.workflow }}
+            Status:   ${{ job.status }}
+            Repo:     ${{ github.repository }}
+            Commit:   ${{ github.sha }}
   deploy:
     needs: build          # 只有 build 成功才会跑
     runs-on: self-hosted  # 跑在你的 Windows 机器上
