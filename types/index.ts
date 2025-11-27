@@ -21,6 +21,7 @@ export interface LotteryConfig {
   minNumber: number;
   maxNumber: number;
   count: number;
+  title?: string; // 奖项名称，如"一等奖"、"二等奖"
 }
 
 export interface LotteryResult {

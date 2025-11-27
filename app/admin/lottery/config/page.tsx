@@ -10,8 +10,8 @@ export default function LotteryConfigPage() {
     minNumber: 1,
     maxNumber: 100,
     count: 5,
+    title: '一等奖',
   });
-  const [lotteryTitle, setLotteryTitle] = useState('一等奖');
   const [history, setHistory] = useState<LotteryResult[]>([]);
   const [loading, setLoading] = useState(true);
   const router = useRouter();
@@ -82,11 +82,6 @@ export default function LotteryConfigPage() {
     } catch (error) {
       console.error('更新配置失败:', error);
     }
-  };
-
-  const saveLotteryTitle = () => {
-    localStorage.setItem('lotteryTitle', lotteryTitle);
-    alert('奖项名称已保存！');
   };
 
   const deleteHistory = async (id: string) => {
@@ -229,46 +224,40 @@ export default function LotteryConfigPage() {
                     </label>
                     <input
                       type="text"
-                      value={lotteryTitle}
-                      onChange={(e) => setLotteryTitle(e.target.value)}
+                      value={config.title || ''}
+                      onChange={(e) => setConfig({ ...config, title: e.target.value })}
                       className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-800"
                       placeholder="例如：一等奖"
                     />
                   </div>
                   <div className="flex gap-2 flex-wrap">
                     <button
-                      onClick={() => setLotteryTitle('特等奖')}
+                      onClick={() => setConfig({ ...config, title: '特等奖' })}
                       className="px-4 py-2 bg-yellow-500 text-white rounded-lg hover:bg-yellow-600 transition-all"
                     >
                       特等奖
                     </button>
                     <button
-                      onClick={() => setLotteryTitle('一等奖')}
+                      onClick={() => setConfig({ ...config, title: '一等奖' })}
                       className="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-all"
                     >
                       一等奖
                     </button>
                     <button
-                      onClick={() => setLotteryTitle('二等奖')}
+                      onClick={() => setConfig({ ...config, title: '二等奖' })}
                       className="px-4 py-2 bg-orange-500 text-white rounded-lg hover:bg-orange-600 transition-all"
                     >
                       二等奖
                     </button>
                     <button
-                      onClick={() => setLotteryTitle('三等奖')}
+                      onClick={() => setConfig({ ...config, title: '三等奖' })}
                       className="px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-all"
                     >
                       三等奖
                     </button>
                   </div>
-                  <button
-                    onClick={saveLotteryTitle}
-                    className="w-full py-3 bg-gradient-to-r from-blue-500 to-cyan-500 text-white rounded-xl font-semibold hover:shadow-lg transition-all"
-                  >
-                    💾 保存奖项名称
-                  </button>
                   <p className="text-xs text-gray-600">
-                    💡 保存后，在抽奖界面将使用此奖项名称
+                    💡 修改后点击上方"保存配置"按钮统一保存
                   </p>
                 </div>
               </div>

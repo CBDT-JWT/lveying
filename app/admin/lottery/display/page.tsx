@@ -25,6 +25,7 @@ export default function LotteryDisplayPage() {
   const [flashEffect, setFlashEffect] = useState(false); // 白色闪光效果
   const [backgroundImage, setBackgroundImage] = useState(''); // 随机背景图片
   const [usedNumbers, setUsedNumbers] = useState<Set<number>>(new Set()); // 已经抽过的号码
+  const [flyingOut, setFlyingOut] = useState(false); // 拍立得飞出动画
   const animationFrameRef = useRef<number>();
   const lastTimeRef = useRef<number>(0);
   const shutterAudioRef = useRef<HTMLAudioElement | null>(null); // 快门音效引用
@@ -35,9 +36,32 @@ export default function LotteryDisplayPage() {
     return Math.ceil(count / 3);
   };
 
-  // 格式化数字为6位，前面补0
+  // 计算每行应该显示多少个数字（3-2-3-2模式）
+  const getNumbersPerRow = (totalCount: number): number[] => {
+    const rows = calculateRows(totalCount);
+    const numbersPerRow: number[] = [];
+    let remaining = totalCount;
+    
+    for (let i = 0; i < rows; i++) {
+      if (i % 2 === 0) {
+        // 奇数行（第1、3、5...行）：尽量放3个
+        const nums = Math.min(3, remaining);
+        numbersPerRow.push(nums);
+        remaining -= nums;
+      } else {
+        // 偶数行（第2、4、6...行）：尽量放2个
+        const nums = Math.min(2, remaining);
+        numbersPerRow.push(nums);
+        remaining -= nums;
+      }
+    }
+    
+    return numbersPerRow;
+  };
+
+  // 格式化数字为7位，前面补0
   const formatNumber = (num: number) => {
-    return num.toString().padStart(6, '0');
+    return num.toString().padStart(7, '0');
   };
 
   // 生成随机数，排除已使用的号码
@@ -82,21 +106,59 @@ export default function LotteryDisplayPage() {
       return;
     }
     fetchConfig();
-    loadLotteryTitle();
+    // 从datastore加载已使用的号码
+    fetchUsedNumbers();
     
     // 初始化音频
     if (typeof window !== 'undefined') {
       shutterAudioRef.current = new Audio('/shutter.mp3');
       shutterAudioRef.current.preload = 'auto';
+      
+      // 预加载所有背景图片
+      const images = ['/max1.jpg', '/max2.jpg', '/max3.jpg', '/max4.jpg'];
+      images.forEach(src => {
+        const img = new Image();
+        img.src = src;
+      });
+      console.log('背景图片预加载完成');
     }
   }, [router]);
+
+  // 键盘事件监听 - 空格键和Enter键控制
+  useEffect(() => {
+    const handleKeyPress = (e: KeyboardEvent) => {
+      if (e.code === 'Space') {
+        e.preventDefault(); // 防止页面滚动
+        
+        if (rolling) {
+          // 如果正在滚动，按空格停止
+          stopLottery();
+        } else {
+          // 否则开始抽奖
+          startLottery();
+        }
+      } else if (e.code === 'Enter') {
+        e.preventDefault();
+        
+        if (finalNumbers.length > 0) {
+          // 如果已经有结果，按Enter刷新
+          handleRefresh();
+        }
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyPress);
+    return () => {
+      window.removeEventListener('keydown', handleKeyPress);
+    };
+  }, [rolling, finalNumbers]);
 
   useEffect(() => {
     if (rolling) {
       // 根据配置的数量计算需要的行数
       const requiredRows = calculateRows(config.count);
       const initialNumbers: FlyingNumber[] = [];
-      const spacing = 15; // 每个数字间隔15%（增大间距）
+      const spacing = 15; // 每个数字间隔15%
       
       // 生成对应行数的数字流
       for (let rowIndex = 0; rowIndex < requiredRows; rowIndex++) {
@@ -182,15 +244,12 @@ export default function LotteryDisplayPage() {
       });
       const data = await response.json();
       setConfig(data.config);
+      // 从配置中读取奖项名称
+      if (data.config.title) {
+        setLotteryTitle(data.config.title);
+      }
     } catch (error) {
       console.error('获取抽奖配置失败:', error);
-    }
-  };
-
-  const loadLotteryTitle = () => {
-    const savedTitle = localStorage.getItem('lotteryTitle');
-    if (savedTitle) {
-      setLotteryTitle(savedTitle);
     }
   };
 
@@ -225,8 +284,33 @@ export default function LotteryDisplayPage() {
   const startLottery = async () => {
     // 先获取已使用的号码
     await fetchUsedNumbers();
+    // 清空背景图片，确保下次停止时重新加载
+    setBackgroundImage('');
     setRolling(true);
     setFinalNumbers([]);
+  };
+
+  const handleRefresh = async () => {
+    // 触发拍立得飞出动画
+    if (finalNumbers.length > 0) {
+      setFlyingOut(true);
+      // 等待动画完成后清空内容并刷新配置
+      setTimeout(async () => {
+        setFinalNumbers([]);
+        setFlyingNumbers([]);
+        setBackgroundImage('');
+        setFlyingOut(false);
+        // 刷新配置和已使用的号码
+        await fetchConfig();
+        await fetchUsedNumbers();
+        console.log('配置已刷新');
+      }, 800); // 动画持续时间
+    } else {
+      // 如果没有内容，直接刷新
+      await fetchConfig();
+      await fetchUsedNumbers();
+      console.log('配置已刷新');
+    }
   };
 
   const stopLottery = () => {
@@ -236,9 +320,22 @@ export default function LotteryDisplayPage() {
       shutterAudioRef.current.play().catch(err => console.log('音效播放失败:', err));
     }
     
-    // 随机选择背景图片 (1-4)
-    const randomImageNum = Math.floor(Math.random() * 4) + 1;
-    setBackgroundImage(`/max${randomImageNum}.jpg`);
+    // 根据奖项名称选择背景图片
+    const imageMap: Record<string, string> = {
+      '特等奖': '/max1.jpg',
+      '二等奖': '/max2.jpg',
+      '三等奖': '/max3.jpg',
+      '一等奖': '/max4.jpg',
+    };
+    const selectedImage = imageMap[lotteryTitle] || '/max1.jpg';
+    
+    // 预加载图片
+    const img = new Image();
+    img.src = selectedImage;
+    img.onload = () => {
+      setBackgroundImage(selectedImage);
+      console.log('背景图片已加载:', selectedImage);
+    };
     
     // 延迟0.5秒后触发闪光和定格
     setTimeout(() => {
@@ -279,18 +376,25 @@ export default function LotteryDisplayPage() {
       
       // 计算所有选中数字的整体中心，并调整位置使其左右居中
       if (selectedNumbers.length > 0) {
-        // 重新排列数字位置，使用增大的间距
-        const requiredRows = calculateRows(selectedNumbers.length);
-        const numbersPerRow = Math.ceil(selectedNumbers.length / requiredRows);
-        const numberSpacing = 15; // 使用10%的间距（与飞行数字一致）
+        // 使用3-2-3-2模式重新排列数字位置
+        const numbersPerRow = getNumbersPerRow(selectedNumbers.length);
+        const numberSpacing = 15; // 使用15%的间距
         
-        // 计算每行的总宽度
-        const rowWidth = (numbersPerRow - 1) * numberSpacing;
-        
+        let numberIndex = 0;
         selectedNumbers = selectedNumbers.map((num, index) => {
-          const rowIndex = Math.floor(index / numbersPerRow);
-          const posInRow = index % numbersPerRow;
-          const numbersInThisRow = Math.min(numbersPerRow, selectedNumbers.length - rowIndex * numbersPerRow);
+          // 找到当前数字所在的行
+          let rowIndex = 0;
+          let remainingNumbers = index;
+          for (let i = 0; i < numbersPerRow.length; i++) {
+            if (remainingNumbers < numbersPerRow[i]) {
+              rowIndex = i;
+              break;
+            }
+            remainingNumbers -= numbersPerRow[i];
+          }
+          
+          const posInRow = remainingNumbers;
+          const numbersInThisRow = numbersPerRow[rowIndex];
           const thisRowWidth = (numbersInThisRow - 1) * numberSpacing;
           
           // 居中计算：从50%开始，减去半个行宽，再加上当前位置
@@ -415,7 +519,7 @@ export default function LotteryDisplayPage() {
             <>
               {/* 白色外框 */}
               <div 
-                className="absolute pointer-events-none"
+                className={`absolute pointer-events-none ${flyingOut ? 'fly-out' : ''}`}
                 style={{
                   left: '50%',
                   top: `calc(50% + ${verticalOffset}px)`,
@@ -424,13 +528,13 @@ export default function LotteryDisplayPage() {
                   height: `${whiteFrameHeight}px`,
                   backgroundColor: 'white',
                   boxShadow: '0 10px 30px rgba(0, 0, 0, 0.5)',
-                  zIndex: 1,
+                  zIndex: flyingOut ? 50 : 1,
                 }}
               />
               
               {/* 背景图片层 - 在黑框下方 */}
               <div 
-                className="absolute pointer-events-none"
+                className={`absolute pointer-events-none ${flyingOut ? 'fly-out' : ''}`}
                 style={{
                   left: '50%',
                   top: `calc(50% + ${verticalOffset}px)`,
@@ -440,13 +544,13 @@ export default function LotteryDisplayPage() {
                   backgroundImage: `url(${backgroundImage})`,
                   backgroundSize: 'cover',
                   backgroundPosition: 'center',
-                  zIndex: 2,
+                  zIndex: flyingOut ? 51 : 2,
                 }}
               />
               
               {/* 黑色内框 - 半透明 */}
               <div 
-                className="absolute pointer-events-none"
+                className={`absolute pointer-events-none ${flyingOut ? 'fly-out' : ''}`}
                 style={{
                   left: '50%',
                   top: `calc(50% + ${verticalOffset}px)`,
@@ -455,22 +559,23 @@ export default function LotteryDisplayPage() {
                   height: `${finalBlackHeight}px`,
                   backgroundColor: 'black',
                   opacity: 0.5,
-                  zIndex: 3,
+                  zIndex: flyingOut ? 52 : 3,
                 }}
               />
               
               {/* 底部白色矩形 */}
               <div 
-                className="absolute pointer-events-none flex items-center justify-between px-6"
+                className={`absolute pointer-events-none flex items-center justify-between px-6 ${flyingOut ? 'fly-out-bottom' : ''}`}
                 style={{
                   left: '50%',
-                  top: `calc(50% + ${verticalOffset}px + ${finalBlackHeight / 2}px - ${(15 / 62) * finalBlackHeight}px)`,
-                  transform: 'translateX(-50%)',
+                  top: `calc(50% + ${verticalOffset}px + ${finalBlackHeight / 2}px)`,
+                  transform: 'translate(-50%, -100%)',
                   width: `${whiteFrameWidth}px`,
                   height: `${(15 / 62) * finalBlackHeight}px`,
                   backgroundColor: 'white',
-                  zIndex: 4,
-                }}
+                  zIndex: flyingOut ? 53 : 4,
+                  '--offset': `${finalBlackHeight / 2}px`,
+                } as React.CSSProperties & { '--offset': string }}
               >
                 {/* 左侧文字 - 掠影2025 */}
                 <span 
@@ -520,13 +625,13 @@ export default function LotteryDisplayPage() {
         return (
           <div
             key={num.id}
-            className="absolute text-4xl font-bold"
+            className={`absolute text-4xl font-bold ${flyingOut && !rolling ? 'fly-out-num' : ''}`}
             style={{
               top: `calc(${rowPositions[num.row % rowPositions.length]} + ${verticalOffset}px)`,
               left: `${num.position}%`,
               transform: 'translateX(-50%)',
               transition: rolling ? 'none' : 'opacity 0.3s, text-shadow 0.3s',
-              zIndex: rolling ? 'auto' : 10,
+              zIndex: flyingOut && !rolling ? 54 : (rolling ? 'auto' : 10),
             }}
           >
             {/* 数字本身 */}
@@ -584,24 +689,6 @@ export default function LotteryDisplayPage() {
         </div>
       )}
 
-      {/* 按钮区域 - 右上角 */}
-      <div className="absolute top-8 right-8 flex gap-3 z-20">
-        <button
-          onClick={startLottery}
-          className="w-16 h-16 rounded-full backdrop-blur-lg bg-white/20 hover:bg-white/30 border-2 border-white/50 shadow-lg transform transition-all hover:scale-110 flex items-center justify-center overflow-hidden"
-          title="开始抽奖"
-        >
-          <img src="/play.png" alt="Play" className="w-10 h-10 object-contain" />
-        </button>
-        <button
-          onClick={stopLottery}
-          className="w-16 h-16 rounded-full backdrop-blur-lg bg-white/20 hover:bg-white/30 border-2 border-white/50 shadow-lg transform transition-all hover:scale-110 flex items-center justify-center overflow-hidden"
-          title="停止抽奖"
-        >
-          <img src="/shutter.png" alt="Stop" className="w-10 h-10 object-contain" />
-        </button>
-      </div>
-
       {/* 动画样式 */}
       <style jsx>{`
         @keyframes rec-blink {
@@ -645,6 +732,45 @@ export default function LotteryDisplayPage() {
             opacity: 1;
             transform: scale(1) rotate(0deg);
           }
+        }
+
+        @keyframes fly-out-animation {
+          0% {
+            top: calc(50% + 30px);
+          }
+          100% {
+            top: -120vh;
+          }
+        }
+
+        @keyframes fly-out-bottom {
+          0% {
+            top: calc(50% + 30px + var(--offset));
+          }
+          100% {
+            top: calc(-120vh + var(--offset));
+          }
+        }
+
+        @keyframes fly-out-number {
+          0% {
+            transform: translateX(-50%) translateY(0);
+          }
+          100% {
+            transform: translateX(-50%) translateY(-175vh);
+          }
+        }
+
+        .fly-out {
+          animation: fly-out-animation 0.8s linear forwards;
+        }
+
+        .fly-out-bottom {
+          animation: fly-out-bottom 0.8s linear forwards;
+        }
+
+        .fly-out-num {
+          animation: fly-out-number 0.8s linear forwards;
         }
 
         .animate-fade-in {

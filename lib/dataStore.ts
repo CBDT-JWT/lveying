@@ -28,6 +28,7 @@ class DataStore {
       minNumber: 1,
       maxNumber: 100,
       count: 5,
+      title: '一等奖',
     },
     lotteryResults: [],
   };
