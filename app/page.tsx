@@ -139,8 +139,8 @@ export default function Home() {
           <Image 
             src="/server.png" 
             alt="Server" 
-            width={60}
-            height={60}
+            width={3}
+            height={3}
             className="object-contain"
           />
         </div>
