@@ -124,12 +124,11 @@ export default function Home() {
             </div> */}
 
             {/* 底部信息 */}
-            <div className="text-center text-sm text-black pt-2">
+            {/* <div className="text-center text-sm text-black pt-2">
               <p>2025年12月5日</p>
               <br />
               <p>大礼堂</p>
-              {/* <p className="mt-1">主办方：电子系学生会</p> */}
-            </div>
+            </div> */}
           </div>
         </div>
         
