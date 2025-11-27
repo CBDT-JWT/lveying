@@ -1,0 +1,36 @@
+name: CI + CD
+
+on:
+  push:
+    branches: [ main ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Use Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Build
+        run: npm run build
+
+  deploy:
+    needs: build          # 只有 build 成功才会跑
+    runs-on: self-hosted  # 跑在你的 Windows 机器上
+
+    steps:
+      - name: Run deploy script
+        shell: powershell
+        run: |
+          # 注意：这里不需要 checkout 代码，因为你的 deploy.ps1 里已经有 git fetch + reset
+          C:\Users\LUEYING\server\lveying\.github\scripts\deploy.ps1
