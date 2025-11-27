@@ -33,7 +33,7 @@ jobs:
           password: ${{ secrets.MAIL_PASS }}
           subject: "CI result: ${{ job.status }} for ${{ github.repository }}"
           to: "jiangwt23@mails.tsinghua.edu.cn"
-          from: "CI Bot <ci@example.com>"
+          from: "CI Bot <bot@mail.lveying.live>"
           body: |
             Workflow: ${{ github.workflow }}
             Status:   ${{ job.status }}
