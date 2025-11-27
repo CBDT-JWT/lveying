@@ -98,8 +98,12 @@ export default function Home() {
             </div>
 
             <div className="border-t border-black/30 pt-4">
-              <p className="text-gray-700 text-center leading-relaxed">
-                欢迎参加本次活动！请使用上方导航栏查看节目进度、抽奖结果和发送弹幕互动。
+              <p className="text-gray-700 text-left">
+                欢迎参加本次学生节！请使用上方导航栏查看节目进度、抽奖结果和发送弹幕互动。
+                
+              </p><br />
+              <p className="text-gray-700 text-left">
+                电子系学生节始创于1999年，是一场集舞台剧、DV 作品、歌曲、舞蹈、器乐、相声等于一体的综合性原创晚会。电子系学生节的筹备贯穿整个秋季学期，为电子系的同学们提供了广阔的展示平台。二十七年来，电子系学生节以其丰富的原创内容、独特的精神关怀以及轻松娱乐的氛围在电子系乃至于清华大学的同学们之中得到了广泛的关注。
               </p>
             </div>
 
@@ -121,7 +125,9 @@ export default function Home() {
 
             {/* 底部信息 */}
             <div className="text-center text-sm text-black pt-2">
-              <p>活动时间：2025年12月5日</p>
+              <p>2025年12月5日</p>
+              <br />
+              <p>大礼堂</p>
               {/* <p className="mt-1">主办方：电子系学生会</p> */}
             </div>
           </div>
