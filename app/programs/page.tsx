@@ -129,7 +129,7 @@ export default function ProgramsPage() {
                       
                       {/* 展开的详情内容 */}
                       {expandedId === program.id && program.info && (
-                        <div className="mt-3 pt-3 border-t border-gray-300/50">
+                        <div className="mt-3">
                           <div className="backdrop-blur-md bg-white/80 rounded-lg p-3 border border-white/30">
                             <MarkdownRenderer content={program.info} />
                           </div>
