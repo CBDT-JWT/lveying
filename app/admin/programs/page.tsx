@@ -121,8 +121,8 @@ export default function AdminProgramsPage() {
     const token = localStorage.getItem('adminToken');
     if (!token) return;
 
-    if (!editTitle.trim() || !editPerformer.trim()) {
-      alert('标题和表演者不能为空！');
+    if (!editTitle.trim()) {
+      alert('标题不能为空！');
       return;
     }
 
@@ -174,8 +174,8 @@ export default function AdminProgramsPage() {
     const token = localStorage.getItem('adminToken');
     if (!token) return;
 
-    if (!newTitle.trim() || !newPerformer.trim()) {
-      alert('标题和表演者不能为空！');
+    if (!newTitle.trim()) {
+      alert('标题不能为空！');
       return;
     }
 
@@ -294,14 +294,14 @@ export default function AdminProgramsPage() {
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
-                    表演者 *
+                    表演者
                   </label>
                   <input
                     type="text"
                     value={newPerformer}
                     onChange={(e) => setNewPerformer(e.target.value)}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 text-gray-800"
-                    placeholder="请输入表演者"
+                    placeholder="请输入表演者（可选）"
                   />
                 </div>
                 <div>

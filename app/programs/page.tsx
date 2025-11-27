@@ -121,9 +121,11 @@ export default function ProgramsPage() {
                       >
                         {program.title}
                       </h3>
-                      <p className="text-sm text-gray-800 mt-1 drop-shadow-md">
-                        表演者：{program.performer}
-                      </p>
+                      {program.performer && (
+                        <p className="text-sm text-gray-800 mt-1 drop-shadow-md">
+                          {program.performer}
+                        </p>
+                      )}
                       
                       {/* 展开的详情内容 */}
                       {expandedId === program.id && program.info && (
