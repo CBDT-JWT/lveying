@@ -24,9 +24,9 @@ export async function POST(request: Request) {
 
     const { title, performer, order } = await request.json();
     
-    if (!title || !performer || order === undefined) {
+    if (!title || order === undefined) {
       return NextResponse.json(
-        { error: '节目标题、表演者和顺序不能为空' },
+        { error: '节目标题和顺序不能为空' },
         { status: 400 }
       );
     }

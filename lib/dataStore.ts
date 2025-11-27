@@ -147,7 +147,7 @@ class DataStore {
     const newProgram: Program = {
       id: Date.now().toString(),
       title,
-      performer,
+      performer: performer || '', // 允许表演者为空字符串
       order,
       completed: false,
       info: '',
@@ -174,7 +174,7 @@ class DataStore {
     const program = this.data.programs.find((p) => p.id === id);
     if (program) {
       program.title = title;
-      program.performer = performer;
+      program.performer = performer || ''; // 允许表演者为空字符串
       program.order = order;
       this.saveData();
       console.log(`✏️ 节目信息已更新: ${title}`);

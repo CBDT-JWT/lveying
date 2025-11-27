@@ -3,7 +3,7 @@
 export interface Program {
   id: string;
   title: string;
-  performer: string;
+  performer: string; // 表演者，可以为空字符串
   order: number;
   completed: boolean;
   info?: string; // 节目详情，支持 Markdown 格式
