@@ -52,5 +52,4 @@ jobs:
       - name: Run deploy script
         shell: powershell
         run: |
-          Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass
-          & "C:\Users\LUEYING\deploy\deploy.ps1"
+          powershell -ExecutionPolicy Bypass -File "C:\Users\LUEYING\deploy\deploy.ps1"
