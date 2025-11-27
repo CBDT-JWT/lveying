@@ -139,7 +139,7 @@ export default function ProgramsPage() {
                       {/* 如果有 info 字段，显示展开提示 */}
                       {program.info && (
                         <p className="text-xs text-gray-700 mt-2 drop-shadow-md">
-                          {expandedId === program.id ? '▲ 点击收起' : '▼ 点击查看详情'}
+                          {expandedId === program.id ? '▲ 点击收起' : '▼ 点击查看演职人员'}
                         </p>
                       )}
                     </div>
