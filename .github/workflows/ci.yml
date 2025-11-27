@@ -47,5 +47,4 @@ jobs:
       - name: Run deploy script
         shell: powershell
         run: |
-          # 注意：这里不需要 checkout 代码，因为你的 deploy.ps1 里已经有 git fetch + reset
           & "C:\Users\LUEYING\server\lveying\.github\scripts\deploy.ps1"
