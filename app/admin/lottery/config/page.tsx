@@ -257,7 +257,7 @@ export default function LotteryConfigPage() {
                     </button>
                   </div>
                   <p className="text-xs text-gray-600">
-                    💡 修改后点击上方"保存配置"按钮统一保存
+                    💡 修改后点击上方&quot;保存配置&quot;按钮统一保存
                   </p>
                 </div>
               </div>
