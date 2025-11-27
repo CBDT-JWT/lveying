@@ -131,9 +131,6 @@ export default function ProgramsPage() {
                       {expandedId === program.id && program.info && (
                         <div className="mt-3 pt-3 border-t border-gray-300/50">
                           <div className="backdrop-blur-md bg-white/80 rounded-lg p-3 border border-white/30">
-                            <h4 className="text-sm font-semibold text-gray-700 mb-2">
-                              节目详情
-                            </h4>
                             <MarkdownRenderer content={program.info} />
                           </div>
                         </div>
