@@ -23,6 +23,11 @@ jobs:
 
       - name: Build
         run: npm run build
+  send_email:
+    needs: build
+    runs-on: ubuntu-latest
+
+    steps:
       - name: Send email notification
         if: always()   # 无论成功失败都发；如果只想失败发，用 failure()
         uses: dawidd6/action-send-mail@v3
@@ -40,11 +45,12 @@ jobs:
             Repo:     ${{ github.repository }}
             Commit:   ${{ github.sha }}
   deploy:
-    needs: build          # 只有 build 成功才会跑
-    runs-on: self-hosted  # 跑在你的 Windows 机器上
+    needs: build
+    runs-on: self-hosted
 
     steps:
       - name: Run deploy script
         shell: powershell
         run: |
+          Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass
           & "C:\Users\LUEYING\server\lveying\.github\scripts\deploy.ps1"
