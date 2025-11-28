@@ -238,6 +238,18 @@ export default function AdminProgramsPage() {
     return programs.filter(p => !p.parentId);
   };
 
+  // 判断节目是否有可展示的演职信息（乐队名或至少一条含姓名的职位）
+  const hasPerformerContent = (program: Program) => {
+    // Only treat as content when there are performers with non-empty names
+    if (!program.performers || program.performers.length === 0) return false;
+    return program.performers.some(([_, names]) => Array.isArray(names) && names.some(n => n && n.toString().trim().length > 0));
+  };
+
+  const getCleanNames = (program: Program) => {
+    if (!program.performers) return [] as string[];
+    return program.performers.flatMap(([, names]) => names).filter(name => name && name.toString().trim().length > 0);
+  };
+
   // 获取节目编号
   const getProgramNumber = (program: Program) => {
     if (program.parentId) {
@@ -260,7 +272,7 @@ export default function AdminProgramsPage() {
     }
     
     if (performers && performers.length > 0) {
-      const allNames = performers.flatMap(([, names]) => names);
+      const allNames = performers.flatMap(([, names]) => names).filter(name => name && name.toString().trim().length > 0);
       if (allNames.length > 0) {
         parts.push(allNames.slice(0, 2).join(' ') + (allNames.length > 2 ? '等' : ''));
       }
@@ -500,7 +512,7 @@ export default function AdminProgramsPage() {
                         </p>
                         
                         {/* 演职人员详细信息 */}
-                        {(program.performers || program.band_name) && (
+                        {hasPerformerContent(program) && (
                           <div className="mt-3 p-3 bg-gray-50 rounded-lg">
                             <ProgramPerformersDisplay 
                               performers={program.performers} 

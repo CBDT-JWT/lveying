@@ -56,12 +56,18 @@ export default function ProgramsPage() {
     return expandedId === programId ? '▲ 点击收起' : '▼ 点击查看演职人员';
   }, [expandedId]);
 
+  const getCleanNames = useCallback((program: Program) => {
+    if (!program.performers) return [] as string[];
+    return program.performers.flatMap(([, names]) => names).filter(name => name && name.toString().trim().length > 0);
+  }, []);
+
   // 判断节目是否有可展示的演职信息（乐队名或至少一条含姓名的职位）
   const hasPerformerContent = useCallback((program: Program) => {
-    if (program.band_name) return true;
+    // Only consider performers arrays with at least one non-empty name as content
     if (!program.performers || program.performers.length === 0) return false;
-    // 有任何一项 names 非空即视为有内容
-    return program.performers.some(([_, names]) => Array.isArray(names) && names.length > 0);
+    return program.performers.some(([_, names]) => {
+      return Array.isArray(names) && names.some(name => name && name.toString().trim().length > 0);
+    });
   }, []);
 
   // 获取程序显示编号
@@ -173,11 +179,11 @@ export default function ProgramsPage() {
                       ) : (
                         <>
                           {/* 标准情况：简短显示组合名或主要演职人员 */}
-                          {(program.band_name || (program.performers && program.performers.length > 0)) && (
+                          {((program.band_name && program.band_name.trim().length > 0) || hasPerformerContent(program)) && (
                             <p className="text-sm text-gray-800 mt-1 drop-shadow-md">
-                              {program.band_name || (program.performers && program.performers.length > 0 ? 
-                                program.performers.flatMap(([, names]) => names).slice(0, 2).join(' ') + 
-                                (program.performers.flatMap(([, names]) => names).length > 2 ? '等' : '') : '')}
+                              {program.band_name || (getCleanNames(program).length > 0 ? 
+                                getCleanNames(program).slice(0, 2).join(' ') + 
+                                (getCleanNames(program).length > 2 ? '等' : '') : '')}
                             </p>
                           )}
                           
