@@ -1,6 +1,7 @@
 'use client';
 
 import GuestNavBar from '@/components/GuestNavBar';
+import Image from 'next/image';
 
 export default function CreditsPage() {
   return (
@@ -18,17 +19,23 @@ export default function CreditsPage() {
 
       <div className="max-w-4xl mx-auto px-4 pt-20">
         <div className="backdrop-blur-lg bg-white/30 rounded-2xl border border-white/20 shadow-2xl p-6">
-          <h1 className="text-3xl font-bold text-gray-800 drop-shadow-lg mb-8 text-center">
+          <h1 className="text-3xl font-bold text-gray-800 drop-shadow-lg mb-6 text-center">
             演职人员表
           </h1>
 
-          <div className="text-center py-16">
-            <p className="text-xl text-gray-800 drop-shadow-md mb-4">
-              演职人员信息正在整理中...
-            </p>
-            <p className="text-lg text-gray-700 drop-shadow-md">
-              敬请期待！
-            </p>
+          <div className="w-full">
+            <Image
+              src="/credits.jpg"
+              alt="演职人员表"
+              width={1200}
+              height={3000}
+              className="rounded-lg shadow-lg w-full h-auto"
+              priority
+              style={{
+                width: '100%',
+                height: 'auto'
+              }}
+            />
           </div>
         </div>
         
