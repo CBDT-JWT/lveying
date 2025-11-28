@@ -195,4 +195,6 @@ const PerformersEditor = React.forwardRef<PerformersEditorRef, PerformersEditorP
   );
 });
 
+PerformersEditor.displayName = 'PerformersEditor';
+
 export default PerformersEditor;
