@@ -162,7 +162,7 @@ export default function PerformersEditor({ performers, band_name, onUpdate, clas
 
           {roles.length === 0 && (
             <p className="text-gray-500 dark:text-gray-400 text-sm py-4 text-center border border-dashed border-gray-300 dark:border-gray-600 rounded-lg bg-gray-50 dark:bg-gray-800/50">
-              暂无演职人员，点击上方"添加职务"按钮开始添加
+              暂无演职人员，点击上方&quot;添加职务&quot;按钮开始添加
             </p>
           )}
         </div>

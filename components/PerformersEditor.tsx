@@ -161,7 +161,7 @@ export default function PerformersEditor({ performers, band_name, onUpdate, clas
                   placeholder="人名（用空格分隔）"
                 />
                 <p className="text-xs text-gray-500 mt-1">
-                  提示：多个人名用空格分隔，如"张三 李四 王五"。可以先输入空格。
+                  提示：多个人名用空格分隔，如&quot;张三 李四 王五&quot;。可以先输入空格。
                 </p>
               </div>
               
@@ -177,7 +177,7 @@ export default function PerformersEditor({ performers, band_name, onUpdate, clas
           
           {localPerformers.length === 0 && (
             <p className="text-gray-500 text-sm py-4 text-center border border-dashed border-gray-300 rounded-lg">
-              暂无演职人员，点击上方"添加职务"按钮开始添加
+              暂无演职人员，点击上方&quot;添加职务&quot;按钮开始添加
             </p>
           )}
         </div>

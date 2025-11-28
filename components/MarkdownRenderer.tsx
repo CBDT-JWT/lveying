@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useCallback } from 'react';
 import katex from 'katex';
 import 'katex/dist/katex.min.css';
 
@@ -12,13 +12,7 @@ interface MarkdownRendererProps {
 export default function MarkdownRenderer({ content, formatNames = false }: MarkdownRendererProps) {
   const containerRef = useRef<HTMLDivElement>(null);
 
-  useEffect(() => {
-    if (containerRef.current) {
-      renderContent();
-    }
-  }, [content]);
-
-  const renderContent = () => {
+  const renderContent = useCallback(() => {
     if (!containerRef.current) return;
 
     let html = content;
@@ -101,7 +95,13 @@ export default function MarkdownRenderer({ content, formatNames = false }: Markd
     html = html.replace(/\n/g, '<br />');
 
     containerRef.current.innerHTML = html;
-  };
+  }, [content]);
+
+  useEffect(() => {
+    if (containerRef.current) {
+      renderContent();
+    }
+  }, [content, renderContent]);
 
   return (
     <div

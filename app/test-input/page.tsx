@@ -26,7 +26,7 @@ export default function TestInputPage() {
             placeholder="试试输入空格开头的文本"
           />
           <p className="text-xs text-gray-500 mt-1">
-            当前值: "{inputValue}" (长度: {inputValue.length})
+            当前值: &quot;{inputValue}&quot; (长度: {inputValue.length})
           </p>
         </div>
         
