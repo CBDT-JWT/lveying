@@ -292,24 +292,32 @@ export default function AdminProgramsPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-purple-900 to-gray-900 p-4">
+    <div 
+      className="min-h-screen p-4"
+      style={{
+        backgroundImage: 'url(/guestbg.png)',
+        backgroundSize: 'cover',
+        backgroundPosition: 'center',
+        backgroundAttachment: 'fixed'
+      }}
+    >
       <div className="max-w-4xl mx-auto">
-        <div className="bg-white rounded-2xl shadow-2xl p-6">
+        <div className="backdrop-blur-lg bg-white/30 rounded-2xl border border-white/20 shadow-2xl p-6">
           <div className="flex items-center justify-between mb-6">
-            <h1 className="text-2xl font-bold text-gray-800">📋 节目管理</h1>
+            <h1 className="text-2xl font-bold text-gray-800 drop-shadow-lg">节目管理</h1>
             <div className="flex space-x-2">
               <button
                 onClick={() => {
                   setShowAddForm(!showAddForm);
                   setNewOrder(programs.length + 1);
                 }}
-                className="px-6 py-2 bg-green-600 text-white rounded-xl hover:bg-green-700 transition-all"
+                className="px-6 py-2 backdrop-blur-md bg-white/20 border border-white/30 text-gray-800 rounded-xl hover:bg-white/30 transition-all shadow-lg"
               >
-                ➕ 添加节目
+                添加节目
               </button>
               <Link
                 href="/admin/dashboard"
-                className="px-6 py-2 bg-purple-600 text-white rounded-xl hover:bg-purple-700 transition-all"
+                className="px-6 py-2 backdrop-blur-md bg-white/20 border border-white/30 text-gray-800 rounded-xl hover:bg-white/30 transition-all shadow-lg"
               >
                 返回控制台
               </Link>
@@ -319,7 +327,7 @@ export default function AdminProgramsPage() {
           {/* 添加节目表单 */}
           {showAddForm && (
             <div className="mb-6 p-6 bg-green-50 rounded-xl border-2 border-green-300">
-              <h3 className="font-bold text-lg text-gray-800 mb-4">➕ 添加新节目</h3>
+              <h3 className="font-bold text-lg text-gray-800 mb-4">添加新节目</h3>
               <div className="space-y-3">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -393,7 +401,7 @@ export default function AdminProgramsPage() {
                   <button
                     onClick={addProgram}
                     disabled={saving}
-                    className="px-6 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-all disabled:opacity-50"
+                    className="px-6 py-2 backdrop-blur-md bg-white/20 border border-white/30 text-gray-800 rounded-lg hover:bg-white/30 transition-all disabled:opacity-50"
                   >
                     {saving ? '添加中...' : '✓ 确认添加'}
                   </button>
@@ -406,7 +414,7 @@ export default function AdminProgramsPage() {
                       setNewParentId('');
                       setNewSubOrder(1);
                     }}
-                    className="px-6 py-2 bg-gray-300 text-gray-700 rounded-lg hover:bg-gray-400 transition-all"
+                    className="px-6 py-2 backdrop-blur-md bg-white/20 border border-white/30 text-gray-800 rounded-lg hover:bg-white/30 transition-all"
                   >
                     取消
                   </button>
@@ -520,13 +528,13 @@ export default function AdminProgramsPage() {
                           <button
                             onClick={() => saveBasicInfo(program.id)}
                             disabled={saving}
-                            className="px-3 py-1 bg-green-500 text-white text-xs rounded hover:bg-green-600"
+                            className="px-3 py-1 backdrop-blur-md bg-white/20 border border-white/30 text-gray-800 text-xs rounded hover:bg-white/30 disabled:opacity-50"
                           >
                             保存
                           </button>
                           <button
                             onClick={cancelEditBasic}
-                            className="px-3 py-1 bg-gray-300 text-gray-700 text-xs rounded hover:bg-gray-400"
+                            className="px-3 py-1 backdrop-blur-md bg-white/20 border border-white/30 text-gray-800 text-xs rounded hover:bg-white/30"
                           >
                             取消
                           </button>
@@ -560,30 +568,26 @@ export default function AdminProgramsPage() {
                         onClick={() =>
                           toggleProgramStatus(program.id, !program.completed)
                         }
-                        className={`px-3 py-2 text-white text-xs rounded-lg transition-all ${
-                          program.completed
-                            ? 'bg-green-500 hover:bg-green-600'
-                            : 'bg-gray-500 hover:bg-gray-600'
-                        }`}
+                        className="px-3 py-2 backdrop-blur-md bg-white/20 border border-white/30 text-gray-800 text-xs rounded-lg hover:bg-white/30 transition-all"
                       >
                         {program.completed ? '✓ 已完成' : '○ 标记完成'}
                       </button>
                     )}
                     <button
                       onClick={() => startEditBasic(program)}
-                      className="px-3 py-2 bg-orange-500 text-white text-xs rounded-lg hover:bg-orange-600 transition-all"
+                      className="px-3 py-2 backdrop-blur-md bg-white/20 border border-white/30 text-gray-800 text-xs rounded-lg hover:bg-white/30 transition-all"
                     >
                       ✏️ 编辑
                     </button>
                     <button
                       onClick={() => startEditInfo(program)}
-                      className="px-3 py-2 bg-blue-500 text-white text-xs rounded-lg hover:bg-blue-600 transition-all"
+                      className="px-3 py-2 backdrop-blur-md bg-white/20 border border-white/30 text-gray-800 text-xs rounded-lg hover:bg-white/30 transition-all"
                     >
-                      📝 详情
+                      详情
                     </button>
                     <button
                       onClick={() => deleteProgram(program.id, program.title)}
-                      className="px-3 py-2 bg-red-500 text-white text-xs rounded-lg hover:bg-red-600 transition-all"
+                      className="px-3 py-2 backdrop-blur-md bg-white/20 border border-white/30 text-gray-800 text-xs rounded-lg hover:bg-white/30 transition-all"
                     >
                       🗑️ 删除
                     </button>
@@ -639,13 +643,13 @@ $$a^2 + b^2 = c^2$$`}
                       <button
                         onClick={() => saveInfo(program.id)}
                         disabled={saving}
-                        className="px-6 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-all disabled:opacity-50"
+                        className="px-6 py-2 backdrop-blur-md bg-white/20 border border-white/30 text-gray-800 rounded-lg hover:bg-white/30 transition-all disabled:opacity-50"
                       >
                         {saving ? '保存中...' : '💾 保存'}
                       </button>
                       <button
                         onClick={cancelEdit}
-                        className="px-6 py-2 bg-gray-300 text-gray-700 rounded-lg hover:bg-gray-400 transition-all"
+                        className="px-6 py-2 backdrop-blur-md bg-white/20 border border-white/30 text-gray-800 rounded-lg hover:bg-white/30 transition-all"
                       >
                         取消
                       </button>
@@ -658,7 +662,7 @@ $$a^2 + b^2 = c^2$$`}
                   <div className="mt-3 pt-3 border-t border-gray-300">
                     <div className="bg-gray-50 rounded-lg p-3">
                       <h4 className="text-sm font-semibold text-gray-700 mb-2">
-                        📝 当前详情
+                        当前详情
                       </h4>
                       <MarkdownRenderer content={program.info} />
                     </div>

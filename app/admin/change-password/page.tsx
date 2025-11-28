@@ -84,21 +84,39 @@ export default function ChangePasswordPage() {
 
   if (!authenticated) {
     return (
-      <div className="min-h-screen bg-gray-900 flex items-center justify-center">
-        <div className="text-white text-xl">验证中...</div>
+      <div 
+        className="min-h-screen flex items-center justify-center"
+        style={{
+          backgroundImage: 'url(/guestbg.png)',
+          backgroundSize: 'cover',
+          backgroundPosition: 'center',
+          backgroundAttachment: 'fixed'
+        }}
+      >
+        <div className="text-gray-800 text-xl font-semibold drop-shadow-lg backdrop-blur-lg bg-white/30 rounded-2xl border border-white/20 p-8">
+          验证中...
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-purple-900 to-gray-900 p-4">
+    <div 
+      className="min-h-screen p-4"
+      style={{
+        backgroundImage: 'url(/guestbg.png)',
+        backgroundSize: 'cover',
+        backgroundPosition: 'center',
+        backgroundAttachment: 'fixed'
+      }}
+    >
       <div className="max-w-2xl mx-auto pt-8">
-        <div className="bg-white rounded-2xl shadow-2xl p-8">
+        <div className="backdrop-blur-lg bg-white/30 rounded-2xl border border-white/20 shadow-2xl p-8">
           <div className="flex items-center justify-between mb-6">
-            <h1 className="text-3xl font-bold text-gray-800">修改密码</h1>
+            <h1 className="text-3xl font-bold text-gray-800 drop-shadow-lg">修改密码</h1>
             <Link
               href="/admin/dashboard"
-              className="px-4 py-2 bg-gray-500 text-white rounded-xl hover:bg-gray-600 transition-all"
+              className="px-4 py-2 backdrop-blur-md bg-white/20 border border-white/30 text-gray-800 rounded-xl hover:bg-white/30 transition-all"
             >
               返回控制台
             </Link>
@@ -162,7 +180,7 @@ export default function ChangePasswordPage() {
             <button
               type="submit"
               disabled={loading}
-              className="w-full py-3 bg-gradient-to-r from-purple-500 to-pink-600 text-white rounded-xl font-semibold hover:from-purple-600 hover:to-pink-700 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+              className="w-full py-3 backdrop-blur-md bg-white/20 border border-white/30 text-gray-800 rounded-xl font-semibold hover:bg-white/30 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {loading ? '修改中...' : '确认修改'}
             </button>

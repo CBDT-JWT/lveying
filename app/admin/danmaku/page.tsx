@@ -99,28 +99,46 @@ export default function AdminDanmakuPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-900 flex items-center justify-center">
-        <div className="text-white text-xl">加载中...</div>
+      <div 
+        className="min-h-screen flex items-center justify-center"
+        style={{
+          backgroundImage: 'url(/guestbg.png)',
+          backgroundSize: 'cover',
+          backgroundPosition: 'center',
+          backgroundAttachment: 'fixed'
+        }}
+      >
+        <div className="text-gray-800 text-xl font-semibold drop-shadow-lg backdrop-blur-lg bg-white/30 rounded-2xl border border-white/20 p-8">
+          加载中...
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-purple-900 to-gray-900 p-4">
+    <div 
+      className="min-h-screen p-4"
+      style={{
+        backgroundImage: 'url(/guestbg.png)',
+        backgroundSize: 'cover',
+        backgroundPosition: 'center',
+        backgroundAttachment: 'fixed'
+      }}
+    >
       <div className="max-w-4xl mx-auto">
-        <div className="bg-white rounded-2xl shadow-2xl p-6">
+        <div className="backdrop-blur-lg bg-white/30 rounded-2xl border border-white/20 shadow-2xl p-6">
           <div className="flex items-center justify-between mb-6">
-            <h1 className="text-2xl font-bold text-gray-800">💬 弹幕管理</h1>
+            <h1 className="text-2xl font-bold text-gray-800 drop-shadow-lg">弹幕管理</h1>
             <div className="flex gap-3">
               <button
                 onClick={clearAllDanmakus}
-                className="px-6 py-2 bg-red-500 text-white rounded-xl hover:bg-red-600 transition-all"
+                className="px-6 py-2 backdrop-blur-md bg-white/20 border border-white/30 text-gray-800 rounded-xl hover:bg-white/30 transition-all"
               >
                 清空弹幕
               </button>
               <Link
                 href="/admin/dashboard"
-                className="px-6 py-2 bg-purple-600 text-white rounded-xl hover:bg-purple-700 transition-all"
+                className="px-6 py-2 backdrop-blur-md bg-white/20 border border-white/30 text-gray-800 rounded-xl hover:bg-white/30 transition-all"
               >
                 返回控制台
               </Link>
@@ -152,7 +170,7 @@ export default function AdminDanmakuPage() {
           {/* 弹幕列表 */}
           {danmakus.length === 0 ? (
             <div className="text-center py-12">
-              <div className="text-6xl mb-4">💬</div>
+              <div className="text-6xl mb-4 text-gray-500">无弹幕</div>
               <p className="text-gray-600 text-lg">暂无弹幕</p>
             </div>
           ) : (
@@ -160,54 +178,46 @@ export default function AdminDanmakuPage() {
               {danmakus.map((danmaku) => (
                 <div
                   key={danmaku.id}
-                  className={`rounded-xl p-4 transition-all border-2 ${
-                    danmaku.censor
-                      ? 'bg-green-50 border-green-300'
-                      : 'bg-orange-50 border-orange-300'
-                  }`}
+                  className="rounded-xl p-4 transition-all backdrop-blur-sm bg-white/10 border border-white/20"
                 >
                   <div className="flex items-start justify-between">
                     <div className="flex-1">
                       <div className="flex items-center mb-2">
                         <span
-                          className={`text-xs font-bold px-2 py-1 rounded ${
+                          className={`text-xs font-bold px-2 py-1 rounded backdrop-blur-md bg-white/20 border border-white/30 ${
                             danmaku.censor
-                              ? 'bg-green-500 text-white'
-                              : 'bg-orange-500 text-white'
+                              ? 'text-green-700'
+                              : 'text-orange-700'
                           }`}
                         >
-                          {danmaku.censor ? '✓ 已审核' : '⏳ 待审核'}
+                          {danmaku.censor ? '已审核' : '待审核'}
                         </span>
                       </div>
-                      <p className="text-gray-800 text-lg mb-2">
+                      <p className="text-gray-800 text-lg mb-2 drop-shadow-lg">
                         {danmaku.content}
                       </p>
-                      <p className="text-sm text-gray-500">
+                      <p className="text-sm text-gray-600 drop-shadow-lg">
                         {new Date(danmaku.timestamp).toLocaleString('zh-CN')}
                       </p>
                     </div>
                     <div className="ml-4 flex flex-col gap-2">
                       <button
                         onClick={() => toggleCensor(danmaku.id, danmaku.censor)}
-                        className={`px-4 py-2 rounded-lg font-medium transition-all ${
-                          danmaku.censor
-                            ? 'bg-orange-500 text-white hover:bg-orange-600'
-                            : 'bg-green-500 text-white hover:bg-green-600'
-                        }`}
+                        className="px-4 py-2 rounded-lg font-medium transition-all backdrop-blur-md bg-white/20 border border-white/30 text-gray-800 hover:bg-white/30"
                       >
-                        {danmaku.censor ? '取消审核' : '✓ 审核通过'}
+                        {danmaku.censor ? '取消审核' : '审核通过'}
                       </button>
                       <button
                         onClick={() =>
                           copyToClipboard(danmaku.content, danmaku.id)
                         }
-                        className={`px-4 py-2 rounded-lg font-medium transition-all ${
+                        className={`px-4 py-2 rounded-lg font-medium transition-all backdrop-blur-md bg-white/20 border border-white/30 hover:bg-white/30 ${
                           copying === danmaku.id
-                            ? 'bg-gray-500 text-white'
-                            : 'bg-blue-500 text-white hover:bg-blue-600'
+                            ? 'text-green-700'
+                            : 'text-gray-800'
                         }`}
                       >
-                        {copying === danmaku.id ? '✓ 已复制' : '复制'}
+                        {copying === danmaku.id ? '已复制' : '复制'}
                       </button>
                     </div>
                   </div>
