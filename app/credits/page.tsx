@@ -1,9 +1,30 @@
 'use client';
 
 import GuestNavBar from '@/components/GuestNavBar';
-import Image from 'next/image';
+import MarkdownRenderer from '@/components/MarkdownRenderer';
+import { useEffect, useState } from 'react';
 
 export default function CreditsPage() {
+  const [creditsContent, setCreditsContent] = useState<string>('');
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const loadCredits = async () => {
+      try {
+        const response = await fetch('/credits.md');
+        const text = await response.text();
+        setCreditsContent(text);
+      } catch (error) {
+        console.error('加载演职人员名单失败:', error);
+        setCreditsContent('# 演职人员名单\n\n加载失败，请刷新页面重试。');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadCredits();
+  }, []);
+
   return (
     <div 
       className="min-h-screen"
@@ -17,25 +38,22 @@ export default function CreditsPage() {
       {/* 导航栏 */}
       <GuestNavBar />
 
-      <div className="max-w-4xl mx-auto px-4 pt-20">
-        <div className="backdrop-blur-lg bg-white/30 rounded-2xl border border-white/20 shadow-2xl p-6">
+      <div className="max-w-5xl mx-auto px-4 pt-20">
+        <div className="backdrop-blur-lg bg-white/30 rounded-2xl border border-white/20 shadow-2xl p-8">
           <h1 className="text-3xl font-bold text-gray-800 drop-shadow-lg mb-6 text-center">
             演职人员表
           </h1>
 
           <div className="w-full">
-            <Image
-              src="/credits.jpg"
-              alt="演职人员表"
-              width={1200}
-              height={3000}
-              className="rounded-lg shadow-lg w-full h-auto"
-              priority
-              style={{
-                width: '100%',
-                height: 'auto'
-              }}
-            />
+            {loading ? (
+              <div className="text-center py-12">
+                <div className="text-gray-600 drop-shadow-lg">加载中...</div>
+              </div>
+            ) : (
+              <div className="max-w-none">
+                <MarkdownRenderer content={creditsContent} />
+              </div>
+            )}
           </div>
         </div>
         

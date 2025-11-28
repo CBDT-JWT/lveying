@@ -29,8 +29,7 @@ export default function ProgramsPage() {
     return () => clearInterval(interval);
   }, []);
 
-  const completedCount = programs.filter((p) => p.completed).length;
-  const progress = programs.length > 0 ? (completedCount / programs.length) * 100 : 0;
+
 
   // 找到正在表演的节目（未完成节目中 id 最小的）
   const currentProgramId = programs
@@ -72,24 +71,6 @@ export default function ProgramsPage() {
       <div className="max-w-2xl mx-auto px-4 pt-20">
         <div className="backdrop-blur-lg bg-white/30 rounded-2xl border border-white/20 shadow-2xl p-6">
           <h1 className="text-2xl font-bold text-gray-800 drop-shadow-lg mb-6 text-center">节目列表</h1>
-
-          {/* 进度条 */}
-          <div className="mb-6">
-            <div className="flex items-center justify-between mb-2">
-              <span className="text-sm font-medium text-gray-800 drop-shadow-md">
-                整体进度
-              </span>
-              <span className="text-sm font-medium text-gray-800 drop-shadow-md">
-                {completedCount}/{programs.length}
-              </span>
-            </div>
-            <div className="w-full backdrop-blur-md bg-gray-300/60 rounded-full h-3 overflow-hidden border border-white/20">
-              <div
-                className="bg-gradient-to-r from-green-500 to-emerald-500 h-full rounded-full transition-all duration-500"
-                style={{ width: `${progress}%` }}
-              ></div>
-            </div>
-          </div>
 
           {loading ? (
             <div className="text-center py-12">
