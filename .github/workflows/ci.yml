@@ -28,6 +28,19 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Get last commit message
+        id: last_commit
+        shell: bash
+        run: |
+          msg=$(git log -1 --pretty=%B)
+          msg="${msg//'%'/'%25'}"
+          msg="${msg//$'\n'/' '}"
+          msg="${msg//$'\r'/' '}"
+          echo "message=$msg" >> "$GITHUB_OUTPUT"
+
       - name: Get last commit message
         id: last_commit
         run: |
