@@ -39,7 +39,7 @@ jobs:
           msg="${msg//'%'/'%25'}"
           msg="${msg//$'\n'/' '}"
           msg="${msg//$'\r'/' '}"
-          echo "message=$msg" >> $GITHUB_OUTPUTs
+          echo "message=$msg" >> $GITHUB_OUTPUT
 
       - name: Send email notification
         if: always()   # 无论成功失败都发；如果只想失败发，用 failure()
