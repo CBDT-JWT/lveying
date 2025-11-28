@@ -29,17 +29,7 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
-
-      - name: Get last commit message
-        id: last_commit
-        shell: bash
-        run: |
-          msg=$(git log -1 --pretty=%B)
-          msg="${msg//'%'/'%25'}"
-          msg="${msg//$'\n'/' '}"
-          msg="${msg//$'\r'/' '}"
-          echo "message=$msg" >> "$GITHUB_OUTPUT"
+        uses: actions/checkout@v4s
 
       - name: Get last commit message
         id: last_commit
@@ -49,7 +39,7 @@ jobs:
           msg="${msg//'%'/'%25'}"
           msg="${msg//$'\n'/' '}"
           msg="${msg//$'\r'/' '}"
-          echo "message=$msg" >> $GITHUB_OUTPUT
+          echo "message=$msg" >> $GITHUB_OUTPUTs
 
       - name: Send email notification
         if: always()   # 无论成功失败都发；如果只想失败发，用 failure()
