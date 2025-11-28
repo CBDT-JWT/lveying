@@ -28,6 +28,16 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+      - name: Get last commit message
+        id: last_commit
+        run: |
+          msg=$(git log -1 --pretty=%B)
+          # 去掉可能的换行，避免邮件标题炸掉
+          msg="${msg//'%'/'%25'}"
+          msg="${msg//$'\n'/' '}"
+          msg="${msg//$'\r'/' '}"
+          echo "message=$msg" >> $GITHUB_OUTPUT
+
       - name: Send email notification
         if: always()   # 无论成功失败都发；如果只想失败发，用 failure()
         uses: dawidd6/action-send-mail@v3
@@ -36,19 +46,31 @@ jobs:
           server_port: 465
           username: ${{ secrets.MAIL_USER }}
           password: ${{ secrets.MAIL_PASS }}
-          subject: "CI result: ${{ job.status }} for ${{ github.repository }}"
-          to: "jiangwt23@mails.tsinghua.edu.cn"
+          subject: >
+            [CI] 部署结果: ${{ job.status }} - ${{ github.ref_name }} - ${{ steps.last_commit.outputs.message }}
+          to: |
+            "jiangwt23@mails.tsinghua.edu.cn",
+            "gaw23@mails.tsinghua.edu.cn",
+            "wjiang0415@outlook.com"
           from: "CI Bot <bot@mail.lveying.live>"
           body: |
-            Workflow: ${{ github.workflow }}
-            Status:   ${{ job.status }}
-            Repo:     ${{ github.repository }}
-            Commit:   ${{ github.sha }}
+            仓库:   ${{ github.repository }}
+            分支:   ${{ github.ref_name }}
+            提交人: ${{ github.actor }}
+            SHA:    ${{ github.sha }}
+            状态:   ${{ job.status }}
+
+            Commit message:
+            ${{ steps.last_commit.outputs.message }}
+
+            工作流: ${{ github.workflow }}
+            运行ID: ${{ github.run_id }}
   deploy:
     needs: build
     runs-on: self-hosted
 
     steps:
+
       - name: Run deploy script
         shell: powershell
         run: |
