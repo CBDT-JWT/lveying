@@ -53,8 +53,10 @@ jobs:
             [CI] 部署结果: ${{ job.status }} - ${{ github.ref_name }} - ${{ steps.last_commit.outputs.message }}
           to: |
             "jiangwt23@mails.tsinghua.edu.cn",
+          cc: |
             "gaw23@mails.tsinghua.edu.cn",
             "wjiang0415@outlook.com"
+
           from: "CI Bot <bot@mail.lveying.live>"
           body: |
             仓库:   ${{ github.repository }}
@@ -68,6 +70,8 @@ jobs:
 
             工作流: ${{ github.workflow }}
             运行ID: ${{ github.run_id }}
+
+            本邮件由自动化系统发送，回复请联系jiangwt23@mails.tsinghua.edu.cn。
   deploy:
     needs: build
     runs-on: self-hosted
