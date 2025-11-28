@@ -446,7 +446,7 @@ export default function AdminProgramsPage() {
               <div
                 key={program.id}
                 className={`rounded-xl p-4 transition-all border-2 ${
-                  isSubProgram ? 'ml-8 bg-blue-50 border-blue-200' : ''
+                  isSubProgram ? 'ml-10 bg-blue-50 border-blue-200' : ''
                 } ${
                   program.completed
                     ? 'bg-green-50 border-green-300'
@@ -454,22 +454,22 @@ export default function AdminProgramsPage() {
                 }`}
               >
                 <div className="flex items-center">
-                  <div className="flex-shrink-0 mr-4">
-                    <button
-                      onClick={() =>
-                        toggleProgramStatus(program.id, !program.completed)
-                      }
-                      className={`${
-                        isSubProgram ? 'w-12 h-6 rounded text-xs' : 'w-10 h-10 rounded-full text-lg'
-                      } flex items-center justify-center font-bold transition-all ${
-                        program.completed
-                          ? 'bg-green-500 text-white hover:bg-green-600'
-                          : 'bg-gray-200 text-gray-600 hover:bg-gray-300'
-                      }`}
-                    >
-                      {program.completed ? '✓' : programNumber}
-                    </button>
-                  </div>
+                  {!isSubProgram && (
+                    <div className="flex-shrink-0 mr-4">
+                      <button
+                        onClick={() =>
+                          toggleProgramStatus(program.id, !program.completed)
+                        }
+                        className={`w-10 h-10 rounded-full flex items-center justify-center font-bold text-lg transition-all ${
+                          program.completed
+                            ? 'bg-green-500 text-white hover:bg-green-600'
+                            : 'bg-gray-200 text-gray-600 hover:bg-gray-300'
+                        }`}
+                      >
+                        {program.completed ? '✓' : programNumber}
+                      </button>
+                    </div>
+                  )}
                   <div className="flex-1">
                     {editingBasicId === program.id ? (
                       <div className="space-y-2">
@@ -555,6 +555,20 @@ export default function AdminProgramsPage() {
                     )}
                   </div>
                   <div className="flex items-center space-x-2">
+                    {isSubProgram && (
+                      <button
+                        onClick={() =>
+                          toggleProgramStatus(program.id, !program.completed)
+                        }
+                        className={`px-3 py-2 text-white text-xs rounded-lg transition-all ${
+                          program.completed
+                            ? 'bg-green-500 hover:bg-green-600'
+                            : 'bg-gray-500 hover:bg-gray-600'
+                        }`}
+                      >
+                        {program.completed ? '✓ 已完成' : '○ 标记完成'}
+                      </button>
+                    )}
                     <button
                       onClick={() => startEditBasic(program)}
                       className="px-3 py-2 bg-orange-500 text-white text-xs rounded-lg hover:bg-orange-600 transition-all"

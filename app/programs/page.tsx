@@ -107,7 +107,7 @@ export default function ProgramsPage() {
                   <div
                     key={program.id}
                     className={`rounded-xl p-4 transition-all cursor-pointer backdrop-blur-md border-2 ${
-                      isSubProgram ? 'ml-6' : '' // 子节目缩进
+                      isSubProgram ? 'ml-8' : '' // 子节目缩进，增加缩进量因为没有编号了
                     } ${
                       isCurrentProgram
                         ? 'bg-yellow-400/50 border-yellow-500/70 shadow-xl'
@@ -118,19 +118,19 @@ export default function ProgramsPage() {
                     onClick={() => toggleExpand(program.id)}
                   >
                     <div className="flex items-start">
-                      <div
-                        className={`flex-shrink-0 ${
-                          isSubProgram ? 'w-10 h-6 rounded text-xs' : 'w-8 h-8 rounded-full text-sm'
-                        } flex items-center justify-center font-bold mr-3 backdrop-blur-md ${
-                          isCurrentProgram
-                            ? 'bg-yellow-500/90 text-white'
-                            : program.completed
-                            ? 'bg-green-500/90 text-white'
-                            : 'bg-gray-400/70 text-white'
-                        }`}
-                      >
-                        {programNumber}
-                      </div>
+                      {!isSubProgram && (
+                        <div
+                          className={`flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center font-bold text-sm mr-3 backdrop-blur-md ${
+                            isCurrentProgram
+                              ? 'bg-yellow-500/90 text-white'
+                              : program.completed
+                              ? 'bg-green-500/90 text-white'
+                              : 'bg-gray-400/70 text-white'
+                          }`}
+                        >
+                          {program.completed ? '✓' : programNumber}
+                        </div>
+                      )}
                       <div className="flex-1">
                         <h3
                           className={`font-semibold text-lg drop-shadow-md ${

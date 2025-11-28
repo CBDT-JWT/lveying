@@ -17,6 +17,7 @@ export default function GuestNavBar() {
     { icon: '/programs.png', label: '节目', href: '/programs' },
     { icon: '/lottery.png', label: '抽奖', href: '/lottery' },
     { icon: '/chat.png', label: '弹幕', href: '/danmaku' },
+    { icon: '/badge.png', label: '演职人员', href: '/credits' },
   ];
 
   return (
