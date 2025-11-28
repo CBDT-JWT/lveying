@@ -33,9 +33,8 @@ export default function ProgramPerformersDisplay({ performers, band_name, classN
           )}
           <div className="names-only text-black">
             {performers[0][1].map((name, nameIndex) => (
-              <span key={nameIndex} className="name whitespace-nowrap">
+              <span key={nameIndex} className="name inline-block whitespace-nowrap mr-1">
                 {name}
-                {nameIndex < performers[0][1].length - 1 && ' '}
               </span>
             ))}
           </div>
@@ -63,9 +62,8 @@ export default function ProgramPerformersDisplay({ performers, band_name, classN
                   {/* 人名 - 左对齐，不换行 */}
                   <div className="names flex-1 text-left text-black">
                     {names.map((name, nameIndex) => (
-                      <span key={nameIndex} className="name whitespace-nowrap">
+                      <span key={nameIndex} className="name inline-block whitespace-nowrap mr-1">
                         {name}
-                        {nameIndex < names.length - 1 && ' '}
                       </span>
                     ))}
                   </div>
@@ -78,9 +76,11 @@ export default function ProgramPerformersDisplay({ performers, band_name, classN
       
       <style jsx>{`
         .performers-display .name {
-          word-break: keep-all;
-          white-space: nowrap;
-        }
+            display: inline-block;
+            word-break: keep-all;
+            white-space: nowrap;
+            margin-right: 0.25rem;
+          }
       `}</style>
     </div>
   );
