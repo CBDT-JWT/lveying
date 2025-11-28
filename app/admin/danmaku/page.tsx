@@ -8,7 +8,8 @@ import { Danmaku } from '@/types';
 export default function AdminDanmakuPage() {
   const [danmakus, setDanmakus] = useState<Danmaku[]>([]);
   const [loading, setLoading] = useState(true);
-  const [copying, setCopying] = useState<string | null>(null);
+  const [deleting, setDeleting] = useState<string | null>(null);
+  const [showOnlyPending, setShowOnlyPending] = useState(false);
   const router = useRouter();
 
   useEffect(() => {
@@ -42,15 +43,39 @@ export default function AdminDanmakuPage() {
     }
   };
 
-  const copyToClipboard = async (content: string, id: string) => {
+  const deleteDanmaku = async (id: string) => {
+    if (!confirm('确定要删除这条弹幕吗？')) return;
+    
+    const token = localStorage.getItem('adminToken');
+    if (!token) return;
+
+    setDeleting(id);
     try {
-      await navigator.clipboard.writeText(content);
-      setCopying(id);
-      setTimeout(() => setCopying(null), 2000);
+      const response = await fetch('/api/danmaku', {
+        method: 'DELETE',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ id }),
+      });
+
+      if (response.ok) {
+        setDanmakus(danmakus.filter(d => d.id !== id));
+      } else {
+        console.error('删除失败');
+      }
     } catch (error) {
-      console.error('复制失败:', error);
+      console.error('删除失败:', error);
+    } finally {
+      setDeleting(null);
     }
   };
+
+  // 筛选弹幕
+  const filteredDanmakus = showOnlyPending 
+    ? danmakus.filter(d => !d.censor)
+    : danmakus;
 
   const clearAllDanmakus = async () => {
     if (!confirm('确定要清空所有弹幕吗？')) return;
@@ -128,7 +153,34 @@ export default function AdminDanmakuPage() {
       <div className="max-w-4xl mx-auto">
         <div className="backdrop-blur-lg bg-white/30 rounded-2xl border border-white/20 shadow-2xl p-6">
           <div className="flex items-center justify-between mb-6">
-            <h1 className="text-2xl font-bold text-gray-800 drop-shadow-lg">弹幕管理</h1>
+            <div className="flex items-center gap-4">
+              <h1 className="text-2xl font-bold text-gray-800 drop-shadow-lg">弹幕管理</h1>
+              
+              {/* 筛选开关 */}
+              <div className="flex items-center gap-2">
+                <label className="flex items-center cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={showOnlyPending}
+                    onChange={(e) => setShowOnlyPending(e.target.checked)}
+                    className="sr-only"
+                  />
+                  <div className={`relative w-12 h-6 rounded-full transition-all backdrop-blur-md border ${
+                    showOnlyPending 
+                      ? 'bg-purple-500/60 border-purple-400/50' 
+                      : 'bg-white/20 border-white/30'
+                  }`}>
+                    <div className={`absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full transition-all shadow-lg ${
+                      showOnlyPending ? 'translate-x-6' : 'translate-x-0'
+                    }`}></div>
+                  </div>
+                  <span className="ml-2 text-sm font-medium text-gray-800 drop-shadow-lg">
+                    仅显示待审核
+                  </span>
+                </label>
+              </div>
+            </div>
+            
             <div className="flex gap-3">
               <button
                 onClick={clearAllDanmakus}
@@ -148,9 +200,11 @@ export default function AdminDanmakuPage() {
           {/* 统计信息 */}
           <div className="grid grid-cols-3 gap-4 mb-6">
             <div className="bg-blue-50 p-4 rounded-xl">
-              <div className="text-sm text-blue-600 mb-1">弹幕总数</div>
+              <div className="text-sm text-blue-600 mb-1">
+                {showOnlyPending ? '显示中' : '弹幕总数'}
+              </div>
               <div className="text-3xl font-bold text-blue-700">
-                {danmakus.length}
+                {filteredDanmakus.length}
               </div>
             </div>
             <div className="bg-green-50 p-4 rounded-xl">
@@ -159,35 +213,43 @@ export default function AdminDanmakuPage() {
                 {danmakus.filter((d) => d.censor).length}
               </div>
             </div>
-            <div className="bg-orange-50 p-4 rounded-xl">
-              <div className="text-sm text-orange-600 mb-1">待审核</div>
-              <div className="text-3xl font-bold text-orange-700">
+            <div className="bg-purple-50 p-4 rounded-xl">
+              <div className="text-sm text-purple-600 mb-1">待审核</div>
+              <div className="text-3xl font-bold text-purple-700">
                 {danmakus.filter((d) => !d.censor).length}
               </div>
             </div>
           </div>
 
           {/* 弹幕列表 */}
-          {danmakus.length === 0 ? (
+          {filteredDanmakus.length === 0 ? (
             <div className="text-center py-12">
-              <div className="text-6xl mb-4 text-gray-500">无弹幕</div>
-              <p className="text-gray-600 text-lg">暂无弹幕</p>
+              <div className="text-6xl mb-4 text-gray-500">
+                {showOnlyPending ? '🎯' : '📝'}
+              </div>
+              <p className="text-gray-600 text-lg">
+                {showOnlyPending ? '暂无待审核弹幕' : '暂无弹幕'}
+              </p>
             </div>
           ) : (
             <div className="space-y-3 max-h-[600px] overflow-y-auto">
-              {danmakus.map((danmaku) => (
+              {filteredDanmakus.map((danmaku) => (
                 <div
                   key={danmaku.id}
-                  className="rounded-xl p-4 transition-all backdrop-blur-sm bg-white/10 border border-white/20"
+                  className={`rounded-xl p-4 transition-all backdrop-blur-sm border border-white/20 ${
+                    danmaku.censor 
+                      ? 'bg-white/10' 
+                      : 'bg-purple-400/20 border-purple-300/30'
+                  }`}
                 >
                   <div className="flex items-start justify-between">
                     <div className="flex-1">
                       <div className="flex items-center mb-2">
                         <span
-                          className={`text-xs font-bold px-2 py-1 rounded backdrop-blur-md bg-white/20 border border-white/30 ${
+                          className={`text-xs font-bold px-2 py-1 rounded backdrop-blur-md border ${
                             danmaku.censor
-                              ? 'text-green-700'
-                              : 'text-orange-700'
+                              ? 'bg-green-400/20 border-green-300/30 text-green-700'
+                              : 'bg-purple-400/20 border-purple-300/30 text-purple-700'
                           }`}
                         >
                           {danmaku.censor ? '已审核' : '待审核'}
@@ -203,21 +265,20 @@ export default function AdminDanmakuPage() {
                     <div className="ml-4 flex flex-col gap-2">
                       <button
                         onClick={() => toggleCensor(danmaku.id, danmaku.censor)}
-                        className="px-4 py-2 rounded-lg font-medium transition-all backdrop-blur-md bg-white/20 border border-white/30 text-gray-800 hover:bg-white/30"
+                        className={`px-4 py-2 rounded-lg font-medium transition-all backdrop-blur-md border text-white ${
+                          danmaku.censor
+                            ? 'bg-gray-500/60 border-gray-400/50 hover:bg-gray-500/80'
+                            : 'bg-green-500/60 border-green-400/50 hover:bg-green-500/80'
+                        }`}
                       >
                         {danmaku.censor ? '取消审核' : '审核通过'}
                       </button>
                       <button
-                        onClick={() =>
-                          copyToClipboard(danmaku.content, danmaku.id)
-                        }
-                        className={`px-4 py-2 rounded-lg font-medium transition-all backdrop-blur-md bg-white/20 border border-white/30 hover:bg-white/30 ${
-                          copying === danmaku.id
-                            ? 'text-green-700'
-                            : 'text-gray-800'
-                        }`}
+                        onClick={() => deleteDanmaku(danmaku.id)}
+                        disabled={deleting === danmaku.id}
+                        className="px-4 py-2 rounded-lg font-medium transition-all backdrop-blur-md bg-red-500/60 border border-red-400/50 text-white hover:bg-red-500/80 disabled:opacity-50"
                       >
-                        {copying === danmaku.id ? '已复制' : '复制'}
+                        {deleting === danmaku.id ? '删除中...' : '删除'}
                       </button>
                     </div>
                   </div>

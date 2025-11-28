@@ -3,6 +3,7 @@
 import GuestNavBar from '@/components/GuestNavBar';
 import MarkdownRenderer from '@/components/MarkdownRenderer';
 import { useEffect, useState } from 'react';
+import BuildTime from '@/components/BuildTime';
 
 export default function CreditsPage() {
   const [creditsContent, setCreditsContent] = useState<string>('');
@@ -51,7 +52,7 @@ export default function CreditsPage() {
               </div>
             ) : (
               <div className="max-w-none">
-                <MarkdownRenderer content={creditsContent} />
+                <MarkdownRenderer content={creditsContent} formatNames={true} />
               </div>
             )}
           </div>
@@ -65,14 +66,7 @@ export default function CreditsPage() {
             <a href="https://github.com/CBDT-JWT/lveying" target="_blank" rel="noopener noreferrer" className="hover:underline">Github</a>
             {' | '}
             <span className="text-xs">
-              Last Build: {process.env.NEXT_PUBLIC_BUILD_TIME || new Date().toLocaleString('zh-CN', {
-                year: 'numeric',
-                month: '2-digit',
-                day: '2-digit',
-                hour: '2-digit',
-                minute: '2-digit',
-                hour12: false
-              }).replace(/\//g, '.').replace(',', '')}
+              <BuildTime />
             </span>
           </p>
         </div>

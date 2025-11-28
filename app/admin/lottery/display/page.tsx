@@ -26,18 +26,41 @@ export default function LotteryDisplayPage() {
   const [backgroundImage, setBackgroundImage] = useState(''); // 随机背景图片
   const [usedNumbers, setUsedNumbers] = useState<Set<number>>(new Set()); // 已经抽过的号码
   const [flyingOut, setFlyingOut] = useState(false); // 拍立得飞出动画
+  const [spaceDisabled, setSpaceDisabled] = useState(false); // 空格键禁用状态
+  const [enterDisabled, setEnterDisabled] = useState(true); // Enter键禁用状态
   const animationFrameRef = useRef<number>();
   const lastTimeRef = useRef<number>(0);
   const shutterAudioRef = useRef<HTMLAudioElement | null>(null); // 快门音效引用
+  const spaceDisableTimeoutRef = useRef<NodeJS.Timeout | null>(null); // 空格键禁用定时器
   const router = useRouter();
 
-  // 根据数量计算需要的行数（每行最多3个）
+  // 根据数量计算需要的行数
   const calculateRows = (count: number) => {
+    // 特殊处理：15个奖使用5行
+    if (count === 15) {
+      return 5;
+    }
+    // 特殊处理：10个奖使用5行
+    if (count === 10) {
+      return 5;
+    }
+    // 其他情况：每行最多3个
     return Math.ceil(count / 3);
   };
 
-  // 计算每行应该显示多少个数字（3-2-3-2模式）
+  // 计算每行应该显示多少个数字
   const getNumbersPerRow = (totalCount: number): number[] => {
+    // 特殊处理：15个奖使用3-3-3-3-3的分行
+    if (totalCount === 15) {
+      return [3, 3, 3, 3, 3];
+    }
+    
+    // 特殊处理：10个奖使用2-2-2-2-2的分行
+    if (totalCount === 10) {
+      return [2, 2, 2, 2, 2];
+    }
+    
+    // 其他情况使用原来的3-2-3-2模式
     const rows = calculateRows(totalCount);
     const numbersPerRow: number[] = [];
     let remaining = totalCount;
@@ -82,15 +105,16 @@ export default function LotteryDisplayPage() {
     return availableNumbers[Math.floor(Math.random() * availableNumbers.length)];
   };
 
-  // 根据行数计算每行的垂直位置
+  // 根据行数计算每行的垂直位置（相对于背景图居中）
   const getRowPositions = (totalRows: number) => {
     if (totalRows === 1) return ['50%'];
-    if (totalRows === 2) return ['45%', '55%'];
-    if (totalRows === 3) return ['40%', '50%', '60%'];
-    if (totalRows === 4) return ['35%', '45%', '55%', '65%'];
-    // 更多行的情况，均匀分布（更紧密）
+    if (totalRows === 2) return ['46.875%', '53.125%'];
+    if (totalRows === 3) return ['43.75%', '50%', '56.25%'];
+    if (totalRows === 4) return ['41.25%', '46.875%', '53.125%', '58.75%'];
+    if (totalRows === 5) return ['37.5%', '43.75%', '50%', '56.25%', '62.5%'];
+    // 更多行的情况，均匀分布（增大25%行间距）
     const positions: string[] = [];
-    const totalHeight = 40; // 从80%减少到40%，使行更紧密
+    const totalHeight = 25; // 从20%增加到25%，增大25%行间距
     const step = totalHeight / (totalRows + 1);
     const startPosition = 50 - totalHeight / 2; // 从中心开始分布
     for (let i = 1; i <= totalRows; i++) {
@@ -128,30 +152,34 @@ export default function LotteryDisplayPage() {
   useEffect(() => {
     const handleKeyPress = (e: KeyboardEvent) => {
       if (e.code === 'Space') {
-        e.preventDefault(); // 防止页面滚动
-        
+        e.preventDefault();
+        if (spaceDisabled) return;
         if (rolling) {
-          // 如果正在滚动，按空格停止
+          // 定格中奖号码
           stopLottery();
+          // 定格后禁用空格，启用Enter
+          setSpaceDisabled(true);
+          setEnterDisabled(false);
         } else {
-          // 否则开始抽奖
+          // 开始抽奖
           startLottery();
         }
       } else if (e.code === 'Enter') {
         e.preventDefault();
-        
+        if (enterDisabled) return;
         if (finalNumbers.length > 0) {
-          // 如果已经有结果，按Enter刷新
+          // 按下Enter后禁用Enter，禁用空格
+          setEnterDisabled(true);
+          setSpaceDisabled(true);
           handleRefresh();
         }
       }
     };
-
     window.addEventListener('keydown', handleKeyPress);
     return () => {
       window.removeEventListener('keydown', handleKeyPress);
     };
-  }, [rolling, finalNumbers]);
+  }, [rolling, finalNumbers, spaceDisabled, enterDisabled]);
 
   useEffect(() => {
     if (rolling) {
@@ -462,6 +490,13 @@ export default function LotteryDisplayPage() {
     }
   };
 
+  // 监听拍立得动画结束，解除空格禁用（必须在组件顶层）
+  useEffect(() => {
+    if (!flyingOut) {
+      setSpaceDisabled(false);
+    }
+  }, [flyingOut]);
+
   return (
     <div 
       className="min-h-screen flex items-center justify-center relative overflow-hidden"
@@ -635,7 +670,13 @@ export default function LotteryDisplayPage() {
         // 根据当前配置计算行位置
         const totalRows = rolling ? calculateRows(config.count) : calculateRows(finalNumbers.length);
         const rowPositions = getRowPositions(totalRows);
-        const verticalOffset = -30; // 向上移动30px
+        
+        // 计算偏移量让数字相对于背景图居中
+        const viewportHeight = typeof window !== 'undefined' ? window.innerHeight : 1080;
+        const frameHeight = viewportHeight * 0.5; // 50% 高度
+        const bottomRectHeight = (15 / 62) * frameHeight; // 底部长方形高度
+        const topWhiteHeight = (4.5 / 62) * frameHeight; // 上边框高度
+        const verticalOffset = -(bottomRectHeight / 2) + (topWhiteHeight / 2); // 先向上移动底部长方形高度的一半，再向下移动上边框高度的一半
         
         return (
           <div

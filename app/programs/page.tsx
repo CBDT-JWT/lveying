@@ -1,9 +1,10 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback, useRef, useMemo } from 'react';
 import { Program } from '@/types';
-import MarkdownRenderer from '@/components/MarkdownRenderer';
+import ProgramPerformersDisplay from '@/components/ProgramPerformersDisplay';
 import GuestNavBar from '@/components/GuestNavBar';
+import BuildTime from '@/components/BuildTime';
 
 export default function ProgramsPage() {
   const [programs, setPrograms] = useState<Program[]>([]);
@@ -26,7 +27,9 @@ export default function ProgramsPage() {
     fetchPrograms();
     // 每10秒刷新一次
     const interval = setInterval(fetchPrograms, 10000);
-    return () => clearInterval(interval);
+    return () => {
+      clearInterval(interval);
+    };
   }, []);
 
 
@@ -36,9 +39,22 @@ export default function ProgramsPage() {
     .filter((p) => !p.completed)
     .sort((a, b) => parseInt(a.id) - parseInt(b.id))[0]?.id;
 
-  const toggleExpand = (id: string) => {
-    setExpandedId(expandedId === id ? null : id);
+  const toggleExpand = useCallback((id: string) => {
+    setExpandedId(prev => prev === id ? null : id);
+  }, []);
+
+  // 检查是否是特殊情况：只有一个没有职务的演职人员列表
+  const isSimpleNameList = (performers: [string | null, string[]][] | null | undefined) => {
+    return performers && 
+      performers.length === 1 && 
+      (performers[0][0] === null || performers[0][0] === '') && 
+      performers[0][1].length > 0;
   };
+
+  // 生成提示文本的函数
+  const getToggleText = useCallback((programId: string) => {
+    return expandedId === programId ? '▲ 点击收起' : '▼ 点击查看演职人员';
+  }, [expandedId]);
 
   // 获取程序显示编号
   const getProgramNumber = (program: Program, index: number) => {
@@ -87,7 +103,7 @@ export default function ProgramsPage() {
                 return (
                   <div
                     key={program.id}
-                    className={`rounded-xl p-4 transition-all cursor-pointer backdrop-blur-md border-2 ${
+                    className={`rounded-xl p-4 transition-all duration-200 backdrop-blur-md border-2 ${
                       isSubProgram ? 'ml-8' : '' // 子节目缩进，增加缩进量因为没有编号了
                     } ${
                       isCurrentProgram
@@ -95,8 +111,21 @@ export default function ProgramsPage() {
                         : program.completed
                         ? 'bg-green-400/40 border-green-300/50'
                         : 'bg-white/40 border-white/30'
-                    } ${expandedId === program.id ? 'shadow-lg' : ''}`}
-                    onClick={() => toggleExpand(program.id)}
+                    } ${expandedId === program.id ? 'shadow-lg' : ''} ${
+                      (program.performers || program.band_name) ? 'cursor-pointer' : ''
+                    }`}
+                    onClick={(e) => {
+                      if (program.performers || program.band_name) {
+                        // 添加视觉反馈
+                        const target = e.currentTarget;
+                        target.style.transform = 'scale(0.98)';
+                        setTimeout(() => {
+                          target.style.transform = '';
+                        }, 100);
+                        
+                        toggleExpand(program.id);
+                      }
+                    }}
                   >
                     <div className="flex items-start">
                       {!isSubProgram && (
@@ -109,7 +138,7 @@ export default function ProgramsPage() {
                               : 'bg-gray-400/70 text-white'
                           }`}
                         >
-                          {program.completed ? '✓' : programNumber}
+                          {programNumber}
                         </div>
                       )}
                       <div className="flex-1">
@@ -124,26 +153,45 @@ export default function ProgramsPage() {
                       >
                         {program.title}
                       </h3>
-                      {program.performer && (
-                        <p className="text-sm text-gray-800 mt-1 drop-shadow-md">
-                          {program.performer}
-                        </p>
-                      )}
-                      
-                      {/* 展开的详情内容 */}
-                      {expandedId === program.id && program.info && (
+                      {/* 对于特殊情况，直接显示演职人员信息，不可折叠 */}
+                      {isSimpleNameList(program.performers) ? (
                         <div className="mt-3">
-                          <div className="backdrop-blur-md bg-white/80 rounded-lg p-3 border border-white/30">
-                            <MarkdownRenderer content={program.info} />
-                          </div>
+                          <ProgramPerformersDisplay 
+                            performers={program.performers} 
+                            band_name={program.band_name}
+                            className="text-sm drop-shadow-md"
+                          />
                         </div>
-                      )}
-                      
-                      {/* 如果有 info 字段，显示展开提示 */}
-                      {program.info && (
-                        <p className="text-xs text-gray-700 mt-2 drop-shadow-md">
-                          {expandedId === program.id ? '▲ 点击收起' : '▼ 点击查看演职人员'}
-                        </p>
+                      ) : (
+                        <>
+                          {/* 标准情况：简短显示组合名或主要演职人员 */}
+                          {(program.band_name || (program.performers && program.performers.length > 0)) && (
+                            <p className="text-sm text-gray-800 mt-1 drop-shadow-md">
+                              {program.band_name || (program.performers && program.performers.length > 0 ? 
+                                program.performers.flatMap(([, names]) => names).slice(0, 2).join(' ') + 
+                                (program.performers.flatMap(([, names]) => names).length > 2 ? '等' : '') : '')}
+                            </p>
+                          )}
+                          
+                          {/* 展开的详情内容 */}
+                          {expandedId === program.id && (program.performers || program.band_name) && (
+                            <div className="mt-3">
+                              <ProgramPerformersDisplay 
+                                performers={program.performers} 
+                                band_name={program.band_name}
+                                className="text-sm drop-shadow-md"
+                                showBandName={false}
+                              />
+                            </div>
+                          )}
+                          
+                          {/* 如果有演职人员信息，显示展开提示 */}
+                          {(program.performers || program.band_name) && (
+                            <p className="text-xs text-gray-700 mt-2 drop-shadow-md">
+                              {getToggleText(program.id)}
+                            </p>
+                          )}
+                        </>
                       )}
                     </div>
                   </div>
@@ -161,16 +209,7 @@ export default function ProgramsPage() {
             {' | '}
             <a href="https://github.com/CBDT-JWT/lveying" target="_blank" rel="noopener noreferrer" className="hover:underline">Github</a>
             {' | '}
-            <span className="text-xs">
-              Last Build: {process.env.NEXT_PUBLIC_BUILD_TIME || new Date().toLocaleString('zh-CN', {
-                year: 'numeric',
-                month: '2-digit',
-                day: '2-digit',
-                hour: '2-digit',
-                minute: '2-digit',
-                hour12: false
-              }).replace(/\//g, '.').replace(',', '')}
-            </span>
+            <BuildTime />
           </p>
         </div>
       </div>

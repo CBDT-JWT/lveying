@@ -3,10 +3,10 @@
 export interface Program {
   id: string;
   title: string;
-  performer: string; // 表演者，可以为空字符串
+  performers?: [string | null, string[]][] | null; // 表演者，元组数组：[职务(可空), 人名数组]
+  band_name?: string | null; // 组合名，可为空
   order: number;
   completed: boolean;
-  info?: string; // 节目详情，支持 Markdown 格式
   parentId?: string; // 父节目ID，如果为空则是主节目
   subOrder?: number; // 子节目排序（在同一个父节目下的顺序）
 }

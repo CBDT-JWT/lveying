@@ -65,7 +65,7 @@ export async function POST(request: Request) {
   }
 }
 
-// DELETE - 清空弹幕（需要管理员权限）
+// DELETE - 删除弹幕（需要管理员权限）
 export async function DELETE(request: Request) {
   try {
     const user = verifyAdmin(request);
@@ -76,11 +76,28 @@ export async function DELETE(request: Request) {
       );
     }
 
-    dataStore.clearDanmakus();
-    return NextResponse.json({ success: true });
+    const body = await request.json();
+    
+    // 如果没有传id，则清空所有弹幕
+    if (!body.id) {
+      dataStore.clearDanmakus();
+      return NextResponse.json({ success: true });
+    }
+    
+    // 删除单个弹幕
+    const success = dataStore.deleteDanmaku(body.id);
+    
+    if (success) {
+      return NextResponse.json({ success: true });
+    } else {
+      return NextResponse.json(
+        { error: '弹幕不存在' },
+        { status: 404 }
+      );
+    }
   } catch (error) {
     return NextResponse.json(
-      { error: '清空弹幕失败' },
+      { error: '删除弹幕失败' },
       { status: 500 }
     );
   }
@@ -123,3 +140,5 @@ export async function PATCH(request: Request) {
     );
   }
 }
+
+

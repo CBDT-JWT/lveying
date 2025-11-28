@@ -1,29 +1,34 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import Link from 'next/link';
 import { Program } from '@/types';
-import MarkdownRenderer from '@/components/MarkdownRenderer';
+import ProgramPerformersDisplay from '@/components/ProgramPerformersDisplay';
+import PerformersEditor from '@/components/PerformersEditor-v3';
 
 export default function AdminProgramsPage() {
   const [programs, setPrograms] = useState<Program[]>([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  
+  // 编辑状态
   const [editingId, setEditingId] = useState<string | null>(null);
-  const [editInfo, setEditInfo] = useState('');
-  const [editingBasicId, setEditingBasicId] = useState<string | null>(null);
   const [editTitle, setEditTitle] = useState('');
-  const [editPerformer, setEditPerformer] = useState('');
   const [editOrder, setEditOrder] = useState(0);
-  const [showAddForm, setShowAddForm] = useState(false);
-  const [newTitle, setNewTitle] = useState('');
-  const [newPerformer, setNewPerformer] = useState('');
-  const [newOrder, setNewOrder] = useState(0);
-  const [newParentId, setNewParentId] = useState('');
-  const [newSubOrder, setNewSubOrder] = useState(1);
+  const [editPerformers, setEditPerformers] = useState<[string | null, string[]][] | null>(null);
+  const [editBandName, setEditBandName] = useState<string | null>(null);
   const [editParentId, setEditParentId] = useState('');
   const [editSubOrder, setEditSubOrder] = useState(1);
+  
+  // 添加新节目状态
+  const [showAddForm, setShowAddForm] = useState(false);
+  const [newTitle, setNewTitle] = useState('');
+  const [newOrder, setNewOrder] = useState(0);
+  const [newPerformers, setNewPerformers] = useState<[string | null, string[]][] | null>(null);
+  const [newBandName, setNewBandName] = useState<string | null>(null);
+  const [newParentId, setNewParentId] = useState('');
+  const [newSubOrder, setNewSubOrder] = useState(1);
+  
   const router = useRouter();
 
   useEffect(() => {
@@ -47,6 +52,7 @@ export default function AdminProgramsPage() {
     }
   };
 
+  // 切换节目完成状态
   const toggleProgramStatus = async (id: string, completed: boolean) => {
     const token = localStorage.getItem('adminToken');
     if (!token) return;
@@ -62,70 +68,28 @@ export default function AdminProgramsPage() {
       });
 
       if (response.ok) {
-        setPrograms(
-          programs.map((p) => (p.id === id ? { ...p, completed } : p))
-        );
+        setPrograms(programs.map((p) => (p.id === id ? { ...p, completed } : p)));
       }
     } catch (error) {
       console.error('更新节目状态失败:', error);
     }
   };
 
-  const startEditInfo = (program: Program) => {
+  // 开始编辑节目
+  const startEdit = (program: Program) => {
     setEditingId(program.id);
-    setEditInfo(program.info || '');
-  };
-
-  const cancelEdit = () => {
-    setEditingId(null);
-    setEditInfo('');
-  };
-
-  const saveInfo = async (id: string) => {
-    const token = localStorage.getItem('adminToken');
-    if (!token) return;
-
-    setSaving(true);
-    try {
-      const response = await fetch('/api/programs', {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({ id, info: editInfo }),
-      });
-
-      if (response.ok) {
-        setPrograms(
-          programs.map((p) => (p.id === id ? { ...p, info: editInfo } : p))
-        );
-        setEditingId(null);
-        setEditInfo('');
-        alert('节目详情已更新！');
-      }
-    } catch (error) {
-      console.error('更新节目详情失败:', error);
-      alert('更新失败，请重试');
-    } finally {
-      setSaving(false);
-    }
-  };
-
-  // 开始编辑基本信息
-  const startEditBasic = (program: Program) => {
-    setEditingBasicId(program.id);
     setEditTitle(program.title);
-    setEditPerformer(program.performer);
     setEditOrder(program.order);
+    setEditPerformers(program.performers || null);
+    setEditBandName(program.band_name || null);
     setEditParentId(program.parentId || '');
     setEditSubOrder(program.subOrder || 1);
   };
 
-  // 保存基本信息
-  const saveBasicInfo = async (id: string) => {
+  // 保存编辑
+  const saveEdit = async () => {
     const token = localStorage.getItem('adminToken');
-    if (!token) return;
+    if (!token || !editingId) return;
 
     if (!editTitle.trim()) {
       alert('标题不能为空！');
@@ -140,48 +104,51 @@ export default function AdminProgramsPage() {
           'Content-Type': 'application/json',
           Authorization: `Bearer ${token}`,
         },
-        body: JSON.stringify({ 
-          id, 
-          title: editTitle, 
-          performer: editPerformer, 
+        body: JSON.stringify({
+          id: editingId,
+          title: editTitle,
           order: editOrder,
+          performers: editPerformers,
+          band_name: editBandName,
           parentId: editParentId || undefined,
-          subOrder: editParentId ? editSubOrder : undefined
+          subOrder: editParentId ? editSubOrder : undefined,
         }),
       });
 
       if (response.ok) {
         setPrograms(
-          programs.map((p) => 
-            p.id === id 
-              ? { 
-                  ...p, 
-                  title: editTitle, 
-                  performer: editPerformer, 
+          programs.map((p) =>
+            p.id === editingId
+              ? {
+                  ...p,
+                  title: editTitle,
                   order: editOrder,
+                  performers: editPerformers,
+                  band_name: editBandName,
                   parentId: editParentId || undefined,
-                  subOrder: editParentId ? editSubOrder : undefined
-                } 
+                  subOrder: editParentId ? editSubOrder : undefined,
+                }
               : p
           )
         );
-        setEditingBasicId(null);
-        alert('节目信息已更新！');
+        cancelEdit();
+        alert('节目已更新！');
       }
     } catch (error) {
-      console.error('更新节目信息失败:', error);
+      console.error('更新节目失败:', error);
       alert('更新失败，请重试');
     } finally {
       setSaving(false);
     }
   };
 
-  // 取消编辑基本信息
-  const cancelEditBasic = () => {
-    setEditingBasicId(null);
+  // 取消编辑
+  const cancelEdit = () => {
+    setEditingId(null);
     setEditTitle('');
-    setEditPerformer('');
     setEditOrder(0);
+    setEditPerformers(null);
+    setEditBandName(null);
     setEditParentId('');
     setEditSubOrder(1);
   };
@@ -204,24 +171,20 @@ export default function AdminProgramsPage() {
           'Content-Type': 'application/json',
           Authorization: `Bearer ${token}`,
         },
-        body: JSON.stringify({ 
-          title: newTitle, 
-          performer: newPerformer, 
+        body: JSON.stringify({
+          title: newTitle,
           order: newOrder,
+          performers: newPerformers,
+          band_name: newBandName,
           parentId: newParentId || undefined,
-          subOrder: newParentId ? newSubOrder : undefined
+          subOrder: newParentId ? newSubOrder : undefined,
         }),
       });
 
       if (response.ok) {
         const data = await response.json();
         setPrograms([...programs, data.program]);
-        setShowAddForm(false);
-        setNewTitle('');
-        setNewPerformer('');
-        setNewOrder(programs.length + 1);
-        setNewParentId('');
-        setNewSubOrder(1);
+        cancelAdd();
         alert('节目已添加！');
       }
     } catch (error) {
@@ -230,6 +193,17 @@ export default function AdminProgramsPage() {
     } finally {
       setSaving(false);
     }
+  };
+
+  // 取消添加
+  const cancelAdd = () => {
+    setShowAddForm(false);
+    setNewTitle('');
+    setNewOrder(programs.length + 1);
+    setNewPerformers(null);
+    setNewBandName(null);
+    setNewParentId('');
+    setNewSubOrder(1);
   };
 
   // 删除节目
@@ -259,198 +233,202 @@ export default function AdminProgramsPage() {
     }
   };
 
-  // 获取主节目列表（用于下拉选择）
+  // 获取主节目列表
   const getMainPrograms = () => {
     return programs.filter(p => !p.parentId);
   };
 
-  // 获取程序显示编号
+  // 获取节目编号
   const getProgramNumber = (program: Program) => {
     if (program.parentId) {
-      // 子节目显示为 "1.1", "1.2" 等
       const parentIndex = programs.findIndex(p => p.id === program.parentId && !p.parentId);
       const mainProgramNumber = parentIndex + 1;
       return `${mainProgramNumber}.${program.subOrder || 1}`;
     } else {
-      // 主节目显示为 "1", "2" 等
       const mainPrograms = programs.filter(p => !p.parentId);
       const mainIndex = mainPrograms.findIndex(p => p.id === program.id);
       return (mainIndex + 1).toString();
     }
   };
 
+  // 格式化演职人员简短显示
+  const formatPerformersShort = (performers?: [string | null, string[]][] | null, band_name?: string | null) => {
+    const parts = [];
+    
+    if (band_name) {
+      parts.push(band_name);
+    }
+    
+    if (performers && performers.length > 0) {
+      const allNames = performers.flatMap(([, names]) => names);
+      if (allNames.length > 0) {
+        parts.push(allNames.slice(0, 2).join(' ') + (allNames.length > 2 ? '等' : ''));
+      }
+    }
+    
+    return parts.join(' - ') || '无';
+  };
+
   const completedCount = programs.filter((p) => p.completed).length;
-  const progress =
-    programs.length > 0 ? (completedCount / programs.length) * 100 : 0;
+  const progress = programs.length > 0 ? (completedCount / programs.length) * 100 : 0;
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-900 flex items-center justify-center">
-        <div className="text-white text-xl">加载中...</div>
+      <div className="min-h-screen bg-gradient-to-br from-green-50 to-blue-50 p-6">
+        <div className="max-w-6xl mx-auto">
+          <div className="text-center py-12">
+            <div className="inline-block animate-spin rounded-full h-12 w-12 border-4 border-green-500 border-t-transparent"></div>
+            <p className="mt-4 text-gray-600">加载节目列表...</p>
+          </div>
+        </div>
       </div>
     );
   }
 
   return (
-    <div 
-      className="min-h-screen p-4"
-      style={{
-        backgroundImage: 'url(/guestbg.png)',
-        backgroundSize: 'cover',
-        backgroundPosition: 'center',
-        backgroundAttachment: 'fixed'
-      }}
-    >
-      <div className="max-w-4xl mx-auto">
-        <div className="backdrop-blur-lg bg-white/30 rounded-2xl border border-white/20 shadow-2xl p-6">
-          <div className="flex items-center justify-between mb-6">
-            <h1 className="text-2xl font-bold text-gray-800 drop-shadow-lg">节目管理</h1>
-            <div className="flex space-x-2">
-              <button
-                onClick={() => {
-                  setShowAddForm(!showAddForm);
-                  setNewOrder(programs.length + 1);
-                }}
-                className="px-6 py-2 backdrop-blur-md bg-white/20 border border-white/30 text-gray-800 rounded-xl hover:bg-white/30 transition-all shadow-lg"
-              >
-                添加节目
-              </button>
-              <Link
-                href="/admin/dashboard"
-                className="px-6 py-2 backdrop-blur-md bg-white/20 border border-white/30 text-gray-800 rounded-xl hover:bg-white/30 transition-all shadow-lg"
-              >
-                返回控制台
-              </Link>
+    <div className="min-h-screen bg-gradient-to-br from-green-50 to-blue-50 p-6">
+      <div className="max-w-6xl mx-auto">
+        {/* 标题和进度 */}
+        <div className="mb-8">
+          <div className="flex items-center justify-between">
+            <h1 className="text-3xl font-bold text-gray-800">节目管理</h1>
+            <button
+              onClick={() => router.push('/admin/dashboard')}
+              className="px-4 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600 transition-colors"
+            >
+              返回管理面板
+            </button>
+          </div>
+          
+          <div className="mt-4 bg-white rounded-xl shadow-lg p-6">
+            <div className="flex justify-between items-center mb-4">
+              <span className="text-lg font-semibold text-gray-800">
+                节目完成进度：{completedCount}/{programs.length}
+              </span>
+              <span className="text-lg font-bold text-green-600">
+                {progress.toFixed(0)}%
+              </span>
+            </div>
+            <div className="w-full bg-gray-200 rounded-full h-3">
+              <div
+                className="bg-gradient-to-r from-green-500 to-green-600 h-3 rounded-full transition-all duration-300"
+                style={{ width: `${progress}%` }}
+              />
             </div>
           </div>
+        </div>
 
-          {/* 添加节目表单 */}
-          {showAddForm && (
-            <div className="mb-6 p-6 bg-green-50 rounded-xl border-2 border-green-300">
-              <h3 className="font-bold text-lg text-gray-800 mb-4">添加新节目</h3>
-              <div className="space-y-3">
+        {/* 添加节目按钮 */}
+        <div className="mb-6">
+          <button
+            onClick={() => {
+              setShowAddForm(!showAddForm);
+              if (!showAddForm) {
+                setNewOrder(programs.length + 1);
+              }
+            }}
+            className="px-6 py-3 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors font-semibold shadow-md"
+          >
+            {showAddForm ? '取消添加' : '+ 添加新节目'}
+          </button>
+        </div>
+
+        {/* 添加节目表单 */}
+        {showAddForm && (
+          <div className="mb-8 bg-white rounded-xl shadow-lg p-6">
+            <h2 className="text-xl font-bold text-gray-800 mb-4">添加新节目</h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  节目标题 *
+                </label>
+                <input
+                  type="text"
+                  value={newTitle}
+                  onChange={(e) => setNewTitle(e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 text-gray-800"
+                  placeholder="请输入节目标题"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  顺序 *
+                </label>
+                <input
+                  type="number"
+                  value={newOrder}
+                  onChange={(e) => setNewOrder(parseInt(e.target.value) || 0)}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 text-gray-800"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  父节目（可选）
+                </label>
+                <select
+                  value={newParentId}
+                  onChange={(e) => setNewParentId(e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 text-gray-800"
+                >
+                  <option value="">无（主节目）</option>
+                  {getMainPrograms().map((program) => (
+                    <option key={program.id} value={program.id}>
+                      {getProgramNumber(program)}. {program.title}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              {newParentId && (
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
-                    节目标题 *
-                  </label>
-                  <input
-                    type="text"
-                    value={newTitle}
-                    onChange={(e) => setNewTitle(e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 text-gray-800"
-                    placeholder="请输入节目标题"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    表演者
-                  </label>
-                  <input
-                    type="text"
-                    value={newPerformer}
-                    onChange={(e) => setNewPerformer(e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 text-gray-800"
-                    placeholder="请输入表演者（可选）"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    顺序 *
+                    子节目序号
                   </label>
                   <input
                     type="number"
-                    value={newOrder}
-                    onChange={(e) => setNewOrder(parseInt(e.target.value) || 0)}
+                    value={newSubOrder}
+                    onChange={(e) => setNewSubOrder(parseInt(e.target.value) || 1)}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 text-gray-800"
-                    placeholder="节目顺序"
                   />
                 </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    父节目（可选）
-                  </label>
-                  <select
-                    value={newParentId}
-                    onChange={(e) => setNewParentId(e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 text-gray-800"
-                  >
-                    <option value="">无（主节目）</option>
-                    {getMainPrograms().map((program) => (
-                      <option key={program.id} value={program.id}>
-                        {getProgramNumber(program)}. {program.title}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-                {newParentId && (
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      子节目序号
-                    </label>
-                    <input
-                      type="number"
-                      value={newSubOrder}
-                      onChange={(e) => setNewSubOrder(parseInt(e.target.value) || 1)}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 text-gray-800"
-                      placeholder="子节目序号"
-                      min="1"
-                    />
-                  </div>
-                )}
-                <div className="flex space-x-2">
-                  <button
-                    onClick={addProgram}
-                    disabled={saving}
-                    className="px-6 py-2 backdrop-blur-md bg-white/20 border border-white/30 text-gray-800 rounded-lg hover:bg-white/30 transition-all disabled:opacity-50"
-                  >
-                    {saving ? '添加中...' : '✓ 确认添加'}
-                  </button>
-                  <button
-                    onClick={() => {
-                      setShowAddForm(false);
-                      setNewTitle('');
-                      setNewPerformer('');
-                      setNewOrder(0);
-                      setNewParentId('');
-                      setNewSubOrder(1);
-                    }}
-                    className="px-6 py-2 backdrop-blur-md bg-white/20 border border-white/30 text-gray-800 rounded-lg hover:bg-white/30 transition-all"
-                  >
-                    取消
-                  </button>
-                </div>
-              </div>
+              )}
             </div>
-          )}
-
-          {/* 进度条 */}
-          <div className="mb-6 p-4 bg-gray-50 rounded-xl">
-            <div className="flex items-center justify-between mb-2">
-              <span className="text-sm font-medium text-gray-700">
-                整体进度
-              </span>
-              <span className="text-sm font-medium text-gray-700">
-                {completedCount}/{programs.length}
-              </span>
-            </div>
-            <div className="w-full bg-gray-200 rounded-full h-4 overflow-hidden">
-              <div
-                className="bg-gradient-to-r from-green-500 to-emerald-500 h-full rounded-full transition-all duration-500"
-                style={{ width: `${progress}%` }}
-              ></div>
-            </div>
-            <div className="mt-2 text-center text-2xl font-bold text-green-600">
-              {Math.round(progress)}%
+            
+            <PerformersEditor
+              performers={newPerformers}
+              band_name={newBandName}
+              onUpdate={(performers, band_name) => {
+                setNewPerformers(performers);
+                setNewBandName(band_name);
+              }}
+              className="mb-4"
+            />
+            
+            <div className="flex space-x-4">
+              <button
+                onClick={addProgram}
+                disabled={saving}
+                className="px-6 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors disabled:opacity-50"
+              >
+                {saving ? '添加中...' : '确认添加'}
+              </button>
+              <button
+                onClick={cancelAdd}
+                className="px-6 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600 transition-colors"
+              >
+                取消
+              </button>
             </div>
           </div>
+        )}
 
-          {/* 节目列表 */}
-          <div className="space-y-3">
-            {programs.map((program, index) => {
-              const isSubProgram = !!program.parentId;
-              const programNumber = getProgramNumber(program);
-              
-              return (
+        {/* 节目列表 */}
+        <div className="space-y-4">
+          {programs.map((program) => {
+            const isSubProgram = !!program.parentId;
+            const programNumber = getProgramNumber(program);
+            const isEditing = editingId === program.id;
+            
+            return (
               <div
                 key={program.id}
                 className={`rounded-xl p-4 transition-all border-2 ${
@@ -461,218 +439,134 @@ export default function AdminProgramsPage() {
                     : isSubProgram ? 'bg-blue-50 border-blue-200' : 'bg-white border-gray-200'
                 }`}
               >
-                <div className="flex items-center">
+                <div className="flex items-start">
                   {!isSubProgram && (
                     <div className="flex-shrink-0 mr-4">
                       <button
-                        onClick={() =>
-                          toggleProgramStatus(program.id, !program.completed)
-                        }
+                        onClick={() => toggleProgramStatus(program.id, !program.completed)}
                         className={`w-10 h-10 rounded-full flex items-center justify-center font-bold text-lg transition-all ${
                           program.completed
                             ? 'bg-green-500 text-white hover:bg-green-600'
-                            : 'bg-gray-200 text-gray-600 hover:bg-gray-300'
+                            : 'bg-gray-300 text-gray-700 hover:bg-gray-400'
                         }`}
                       >
                         {program.completed ? '✓' : programNumber}
                       </button>
                     </div>
                   )}
+
                   <div className="flex-1">
-                    {editingBasicId === program.id ? (
-                      <div className="space-y-2">
-                        <input
-                          type="text"
-                          value={editTitle}
-                          onChange={(e) => setEditTitle(e.target.value)}
-                          className="w-full px-3 py-1 border border-gray-300 rounded text-gray-800"
-                          placeholder="节目标题"
-                        />
-                        <input
-                          type="text"
-                          value={editPerformer}
-                          onChange={(e) => setEditPerformer(e.target.value)}
-                          className="w-full px-3 py-1 border border-gray-300 rounded text-gray-800 text-sm"
-                          placeholder="表演者"
-                        />
-                        <input
-                          type="number"
-                          value={editOrder}
-                          onChange={(e) => setEditOrder(parseInt(e.target.value) || 0)}
-                          className="w-32 px-3 py-1 border border-gray-300 rounded text-gray-800 text-sm"
-                          placeholder="顺序"
-                        />
-                        <select
-                          value={editParentId}
-                          onChange={(e) => setEditParentId(e.target.value)}
-                          className="w-48 px-3 py-1 border border-gray-300 rounded text-gray-800 text-sm"
-                        >
-                          <option value="">无（主节目）</option>
-                          {getMainPrograms().filter(p => p.id !== program.id).map((p) => (
-                            <option key={p.id} value={p.id}>
-                              {getProgramNumber(p)}. {p.title}
-                            </option>
-                          ))}
-                        </select>
-                        {editParentId && (
+                    {isEditing ? (
+                      <div className="space-y-4">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                          <input
+                            type="text"
+                            value={editTitle}
+                            onChange={(e) => setEditTitle(e.target.value)}
+                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-800"
+                            placeholder="节目标题"
+                          />
                           <input
                             type="number"
-                            value={editSubOrder}
-                            onChange={(e) => setEditSubOrder(parseInt(e.target.value) || 1)}
-                            className="w-24 px-3 py-1 border border-gray-300 rounded text-gray-800 text-sm"
-                            placeholder="子序号"
-                            min="1"
+                            value={editOrder}
+                            onChange={(e) => setEditOrder(parseInt(e.target.value) || 0)}
+                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-800"
+                            placeholder="顺序"
                           />
-                        )}
-                        <div className="flex space-x-2">
-                          <button
-                            onClick={() => saveBasicInfo(program.id)}
-                            disabled={saving}
-                            className="px-3 py-1 backdrop-blur-md bg-white/20 border border-white/30 text-gray-800 text-xs rounded hover:bg-white/30 disabled:opacity-50"
-                          >
-                            保存
-                          </button>
-                          <button
-                            onClick={cancelEditBasic}
-                            className="px-3 py-1 backdrop-blur-md bg-white/20 border border-white/30 text-gray-800 text-xs rounded hover:bg-white/30"
-                          >
-                            取消
-                          </button>
                         </div>
+                        <PerformersEditor
+                          performers={editPerformers}
+                          band_name={editBandName}
+                          onUpdate={(performers, band_name) => {
+                            setEditPerformers(performers);
+                            setEditBandName(band_name);
+                          }}
+                        />
                       </div>
                     ) : (
                       <>
-                        <h3
-                          className={`font-semibold text-lg ${
-                            program.completed
-                              ? 'text-green-700 line-through'
-                              : 'text-gray-800'
-                          }`}
-                        >
+                        <h3 className={`text-lg font-semibold ${
+                          program.completed ? 'text-green-700' : 'text-gray-800'
+                        }`}>
                           {program.title}
                         </h3>
                         <p className="text-sm text-gray-600 mt-1">
-                          表演者：{program.performer} | 顺序：{program.order}
+                          演职人员：{formatPerformersShort(program.performers, program.band_name)} | 顺序：{program.order}
                           {program.parentId && (
                             <span className="ml-2 text-blue-600">
                               (子节目 {program.subOrder})
                             </span>
                           )}
                         </p>
+                        
+                        {/* 演职人员详细信息 */}
+                        {(program.performers || program.band_name) && (
+                          <div className="mt-3 p-3 bg-gray-50 rounded-lg">
+                            <ProgramPerformersDisplay 
+                              performers={program.performers} 
+                              band_name={program.band_name}
+                              className="text-sm"
+                            />
+                          </div>
+                        )}
                       </>
                     )}
                   </div>
-                  <div className="flex items-center space-x-2">
+                  
+                  <div className="flex items-center space-x-2 ml-4">
                     {isSubProgram && (
                       <button
-                        onClick={() =>
-                          toggleProgramStatus(program.id, !program.completed)
-                        }
-                        className="px-3 py-2 backdrop-blur-md bg-white/20 border border-white/30 text-gray-800 text-xs rounded-lg hover:bg-white/30 transition-all"
+                        onClick={() => toggleProgramStatus(program.id, !program.completed)}
+                        className="px-3 py-2 bg-white/70 border border-gray-300 text-gray-800 text-xs rounded-lg hover:bg-white transition-all"
                       >
                         {program.completed ? '✓ 已完成' : '○ 标记完成'}
                       </button>
                     )}
-                    <button
-                      onClick={() => startEditBasic(program)}
-                      className="px-3 py-2 backdrop-blur-md bg-white/20 border border-white/30 text-gray-800 text-xs rounded-lg hover:bg-white/30 transition-all"
-                    >
-                      ✏️ 编辑
-                    </button>
-                    <button
-                      onClick={() => startEditInfo(program)}
-                      className="px-3 py-2 backdrop-blur-md bg-white/20 border border-white/30 text-gray-800 text-xs rounded-lg hover:bg-white/30 transition-all"
-                    >
-                      详情
-                    </button>
-                    <button
-                      onClick={() => deleteProgram(program.id, program.title)}
-                      className="px-3 py-2 backdrop-blur-md bg-white/20 border border-white/30 text-gray-800 text-xs rounded-lg hover:bg-white/30 transition-all"
-                    >
-                      🗑️ 删除
-                    </button>
-                    {program.completed && (
-                      <span className="text-3xl">🎉</span>
+                    
+                    {isEditing ? (
+                      <>
+                        <button
+                          onClick={saveEdit}
+                          disabled={saving}
+                          className="px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors disabled:opacity-50"
+                        >
+                          {saving ? '保存中...' : '保存'}
+                        </button>
+                        <button
+                          onClick={cancelEdit}
+                          className="px-4 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600 transition-colors"
+                        >
+                          取消
+                        </button>
+                      </>
+                    ) : (
+                      <>
+                        <button
+                          onClick={() => startEdit(program)}
+                          className="px-3 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors"
+                        >
+                          编辑
+                        </button>
+                        <button
+                          onClick={() => deleteProgram(program.id, program.title)}
+                          className="px-3 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors"
+                        >
+                          删除
+                        </button>
+                      </>
                     )}
                   </div>
                 </div>
-
-                {/* 编辑详情面板 */}
-                {editingId === program.id && (
-                  <div className="mt-4 pt-4 border-t border-gray-300">
-                    <div className="mb-3">
-                      <label className="block text-sm font-semibold text-gray-700 mb-2">
-                        节目详情（支持 Markdown 和数学公式）
-                      </label>
-                      <p className="text-xs text-gray-500 mb-2">
-                        💡 提示：<br/>
-                        • 粗体：**文本** 或 __文本__<br/>
-                        • 斜体：*文本* 或 _文本_<br/>
-                        • 行内公式：$E=mc^2$<br/>
-                        • 块级公式：$${'\\int_0^\\infty e^{-x^2} dx = \\frac{\\sqrt{\\pi}}{2}'}$$
-                      </p>
-                      <textarea
-                        value={editInfo}
-                        onChange={(e) => setEditInfo(e.target.value)}
-                        className="w-full h-40 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm font-mono"
-                        placeholder={`请输入节目详情，例如：
-这是一个**精彩**的节目
-
-表演时间：*20分钟*
-
-数学之美：$\\pi \\approx 3.14159$
-
-勾股定理：
-$$a^2 + b^2 = c^2$$`}
-                      />
-                    </div>
-
-                    {/* 预览区 */}
-                    {editInfo && (
-                      <div className="mb-3">
-                        <label className="block text-sm font-semibold text-gray-700 mb-2">
-                          预览效果
-                        </label>
-                        <div className="bg-gray-50 rounded-lg p-3 border border-gray-200">
-                          <MarkdownRenderer content={editInfo} />
-                        </div>
-                      </div>
-                    )}
-
-                    <div className="flex space-x-2">
-                      <button
-                        onClick={() => saveInfo(program.id)}
-                        disabled={saving}
-                        className="px-6 py-2 backdrop-blur-md bg-white/20 border border-white/30 text-gray-800 rounded-lg hover:bg-white/30 transition-all disabled:opacity-50"
-                      >
-                        {saving ? '保存中...' : '💾 保存'}
-                      </button>
-                      <button
-                        onClick={cancelEdit}
-                        className="px-6 py-2 backdrop-blur-md bg-white/20 border border-white/30 text-gray-800 rounded-lg hover:bg-white/30 transition-all"
-                      >
-                        取消
-                      </button>
-                    </div>
-                  </div>
-                )}
-
-                {/* 显示已有详情 */}
-                {!editingId && program.info && (
-                  <div className="mt-3 pt-3 border-t border-gray-300">
-                    <div className="bg-gray-50 rounded-lg p-3">
-                      <h4 className="text-sm font-semibold text-gray-700 mb-2">
-                        当前详情
-                      </h4>
-                      <MarkdownRenderer content={program.info} />
-                    </div>
-                  </div>
-                )}
               </div>
             );
-            })}
-          </div>
+          })}
         </div>
+
+        {programs.length === 0 && (
+          <div className="text-center py-12 bg-white rounded-xl shadow-lg">
+            <p className="text-gray-600 text-lg">暂无节目，点击上方按钮添加第一个节目吧！</p>
+          </div>
+        )}
       </div>
     </div>
   );

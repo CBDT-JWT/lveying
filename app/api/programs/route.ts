@@ -81,7 +81,7 @@ export async function PUT(request: Request) {
       );
     }
 
-    const { id, title, performer, order, info, parentId, subOrder } = await request.json();
+    const { id, title, performers, band_name, order, parentId, subOrder } = await request.json();
     
     if (!id) {
       return NextResponse.json(
@@ -91,13 +91,8 @@ export async function PUT(request: Request) {
     }
 
     // 如果提供了基本信息，更新基本信息
-    if (title !== undefined && performer !== undefined && order !== undefined) {
-      dataStore.updateProgramDetails(id, title, performer, order, parentId, subOrder);
-    }
-    
-    // 如果提供了详情信息，更新详情
-    if (info !== undefined) {
-      dataStore.updateProgramInfo(id, info);
+    if (title !== undefined && order !== undefined) {
+      dataStore.updateProgramDetails(id, title, order, performers, band_name, parentId, subOrder);
     }
 
     return NextResponse.json({ success: true });

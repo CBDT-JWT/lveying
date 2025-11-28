@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import GuestNavBar from '@/components/GuestNavBar';
+import BuildTime from '@/components/BuildTime';
 
 interface LotteryResult {
   id: string;
@@ -282,14 +283,7 @@ export default function LotteryPage() {
           <a href="https://github.com/CBDT-JWT/lveying" target="_blank" rel="noopener noreferrer" className="hover:underline">Github</a>
           {' | '}
           <span className="text-xs">
-            Last Build: {process.env.NEXT_PUBLIC_BUILD_TIME || new Date().toLocaleString('zh-CN', {
-              year: 'numeric',
-              month: '2-digit',
-              day: '2-digit',
-              hour: '2-digit',
-              minute: '2-digit',
-              hour12: false
-            }).replace(/\//g, '.').replace(',', '')}
+            <BuildTime />
           </span>
         </p>
       </div>

@@ -1,8 +1,9 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import Image from 'next/image';
 import GuestNavBar from '@/components/GuestNavBar';
+import BuildTime from '@/components/BuildTime';
 
 interface Danmaku {
   id: string;
@@ -18,13 +19,18 @@ export default function DanmakuPage() {
   const [message, setMessage] = useState('');
   const [recentDanmakus, setRecentDanmakus] = useState<Danmaku[]>([]);
   const [loading, setLoading] = useState(true);
+  const scrollContainerRef = React.useRef<HTMLDivElement>(null);
 
   // 获取最近的弹幕
   const fetchRecentDanmakus = async () => {
     try {
       const response = await fetch('/api/danmaku/public');
       const data = await response.json();
-      setRecentDanmakus(data.danmakus || []);
+      // 获取最新20条弹幕，按时间倒序排列（最新的在前）
+      const sortedDanmakus = (data.danmakus || [])
+        .sort((a: Danmaku, b: Danmaku) => b.timestamp - a.timestamp)
+        .slice(0, 20);
+      setRecentDanmakus(sortedDanmakus);
     } catch (error) {
       console.error('获取弹幕失败:', error);
     } finally {
@@ -38,6 +44,13 @@ export default function DanmakuPage() {
     const interval = setInterval(fetchRecentDanmakus, 3000);
     return () => clearInterval(interval);
   }, []);
+
+  // 当弹幕更新时，滚动到底部显示最新弹幕
+  useEffect(() => {
+    if (scrollContainerRef.current) {
+      scrollContainerRef.current.scrollTop = scrollContainerRef.current.scrollHeight;
+    }
+  }, [recentDanmakus]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -98,14 +111,41 @@ export default function DanmakuPage() {
               <p className="mt-2 text-gray-800 text-sm drop-shadow-md">加载中...</p>
             </div>
           ) : recentDanmakus.length > 0 ? (
-            <div className="space-y-3">
-              {recentDanmakus.map((danmaku) => (
-                <div key={danmaku.id} className="flex">
-                  <div className="backdrop-blur-md bg-white/40 rounded-full px-6 py-2 border border-white/20 hover:bg-white/50 transition-all max-w-full">
-                    <p className="text-gray-800 drop-shadow-md break-words">{danmaku.content}</p>
-                  </div>
-                </div>
-              ))}
+            <div className="relative">
+              {/* 弹幕滚动容器 - 显示约8条弹幕的高度 */}
+              <div 
+                ref={scrollContainerRef}
+                className="flex flex-col space-y-3 overflow-y-scroll custom-scrollbar p-4"
+                style={{ 
+                  height: '480px', // 约8条弹幕的高度 (每条约60px)
+                  scrollBehavior: 'smooth'
+                }}
+              >
+                {recentDanmakus
+                  .slice()
+                  .reverse() // 反转数组，让最老的在上面，最新的在下面
+                  .map((danmaku, index, arr) => {
+                    // 检查是否是最新的弹幕（在反转数组中的最后一个）
+                    const isNew = index === arr.length - 1;
+                    return (
+                      <div 
+                        key={`${danmaku.id}-${danmaku.timestamp}`} 
+                        className={`flex transform transition-all duration-500 ease-in-out ${
+                          isNew ? 'animate-slide-up-fade-in' : ''
+                        }`}
+                      >
+                        <div className="backdrop-blur-md bg-white/40 rounded-full px-6 py-3 border border-white/20 hover:bg-white/50 transition-all max-w-full shadow-lg">
+                          <p className="text-gray-800 drop-shadow-md break-words font-medium">{danmaku.content}</p>
+                        </div>
+                      </div>
+                    );
+                  })}
+              </div>
+              
+              {/* 底部渐变遮罩 */}
+              {recentDanmakus.length > 8 && (
+                <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-white/30 to-transparent h-8 pointer-events-none rounded-b-xl"></div>
+              )}
             </div>
           ) : (
             <div className="text-center py-8">
@@ -163,14 +203,7 @@ export default function DanmakuPage() {
             <a href="https://github.com/CBDT-JWT/lveying" target="_blank" rel="noopener noreferrer" className="hover:underline">Github</a>
             {' | '}
             <span className="text-xs">
-              Last Build: {process.env.NEXT_PUBLIC_BUILD_TIME || new Date().toLocaleString('zh-CN', {
-                year: 'numeric',
-                month: '2-digit',
-                day: '2-digit',
-                hour: '2-digit',
-                minute: '2-digit',
-                hour12: false
-              }).replace(/\//g, '.').replace(',', '')}
+              <BuildTime />
             </span>
           </p>
         </div>

@@ -4,8 +4,11 @@ import { useEffect, useState } from 'react';
 
 export default function BuildTime() {
   const [buildTime, setBuildTime] = useState('');
+  const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
+    setMounted(true);
+    
     // Get build time from environment or generate current time
     const time = process.env.NEXT_PUBLIC_BUILD_TIME || new Date().toLocaleString('zh-CN', {
       year: 'numeric',
@@ -19,10 +22,11 @@ export default function BuildTime() {
     setBuildTime(time);
   }, []);
 
-  if (!buildTime) return null;
+  // 防止服务端渲染不一致
+  if (!mounted || !buildTime) return null;
 
   return (
-    <span className="text-xs">
+    <span className="text-xs" suppressHydrationWarning>
       Last Build: {buildTime}
     </span>
   );

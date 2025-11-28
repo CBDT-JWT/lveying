@@ -6,9 +6,10 @@ import 'katex/dist/katex.min.css';
 
 interface MarkdownRendererProps {
   content: string;
+  formatNames?: boolean; // 是否格式化人名为统一宽度，默认false
 }
 
-export default function MarkdownRenderer({ content }: MarkdownRendererProps) {
+export default function MarkdownRenderer({ content, formatNames = false }: MarkdownRendererProps) {
   const containerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -53,15 +54,23 @@ export default function MarkdownRenderer({ content }: MarkdownRendererProps) {
 
     // 处理职位和人员格式（**职位**：人员名单）
     html = html.replace(/\*\*([^*]+?)\*\*：(.+?)(?=\n|$)/g, (match, title, names) => {
-      // 将人名按空格分割并格式化为固定宽度
-      const formattedNames = names.trim().split(/\s+/).map((name: string) => 
-        `<span class="inline-block text-center w-[4em] mx-0.5 mb-1">${name}</span>`
-      ).join('');
-      
-      return `<div class="flex mb-3 items-start">
-        <span class="font-bold text-gray-800 drop-shadow-md min-w-[140px] text-left flex-shrink-0 mr-2 break-words">${title}：</span>
-        <div class="text-gray-700 drop-shadow-md text-left flex-1 leading-relaxed flex flex-wrap items-start">${formattedNames}</div>
-      </div>`;
+      if (formatNames) {
+        // 将人名按空格分割并格式化为固定宽度
+        const formattedNames = names.trim().split(/\s+/).map((name: string) => 
+          `<span class="inline-block text-center w-[4em] mx-0.5 mb-1">${name}</span>`
+        ).join('');
+        
+        return `<div class="flex mb-3 items-start">
+          <span class="font-bold text-gray-800 drop-shadow-md min-w-[140px] text-left flex-shrink-0 mr-2 break-words">${title}：</span>
+          <div class="text-gray-700 drop-shadow-md text-left flex-1 leading-relaxed flex flex-wrap items-start">${formattedNames}</div>
+        </div>`;
+      } else {
+        // 普通格式，不格式化人名
+        return `<div class="flex mb-3 items-start">
+          <span class="font-bold text-gray-800 drop-shadow-md min-w-[140px] text-left flex-shrink-0 mr-2 break-words">${title}：</span>
+          <span class="text-gray-700 drop-shadow-md text-left flex-1 leading-relaxed whitespace-normal" style="word-break: keep-all; overflow-wrap: break-word;">${names}</span>
+        </div>`;
+      }
     });
     
     // 处理其他粗体 **text** 或 __text__
@@ -76,16 +85,16 @@ export default function MarkdownRenderer({ content }: MarkdownRendererProps) {
     html = html.replace(/\n\n/g, '</p><p class="mb-3 text-gray-700 drop-shadow-md leading-relaxed whitespace-normal" style="word-break: keep-all; overflow-wrap: break-word;">');
     html = '<p class="mb-3 text-gray-700 drop-shadow-md leading-relaxed whitespace-normal" style="word-break: keep-all; overflow-wrap: break-word;">' + html + '</p>';
     
-    // 给纯文本段落（不包含标题或职位格式的）添加左边距，使其与人名对齐
+    // 给纯文本段落（不包含标题或职位格式的）处理格式
     html = html.replace(/<p class="mb-3 text-gray-700[^>]*">([^<]*(?!<h|<div)[^<]*)<\/p>/g, (match, content) => {
       // 检查是否是纯人名列表（没有冒号的内容）
-      if (content && !content.includes('：') && !content.includes('<h')) {
+      if (formatNames && content && !content.includes('：') && !content.includes('<h')) {
         const formattedNames = content.trim().split(/\s+/).map((name: string) => 
           `<span class="inline-block text-center w-[4em] mx-0.5 mb-1">${name}</span>`
         ).join('');
-        return `<div class="mb-3 text-gray-700 drop-shadow-md leading-relaxed ml-[142px] text-left flex flex-wrap items-start">${formattedNames}</div>`;
+        return `<div class="mb-3 text-gray-700 drop-shadow-md leading-relaxed text-left flex flex-wrap items-start">${formattedNames}</div>`;
       }
-      return '<p class="mb-3 text-gray-700 drop-shadow-md leading-relaxed ml-[142px] text-left whitespace-normal" style="word-break: keep-all; overflow-wrap: break-word;">' + content + '</p>';
+      return '<p class="mb-3 text-gray-700 drop-shadow-md leading-relaxed text-left whitespace-normal" style="word-break: keep-all; overflow-wrap: break-word;">' + content + '</p>';
     });
     
     // 处理单个换行

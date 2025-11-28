@@ -17,11 +17,11 @@ class DataStore {
   // 默认数据
   private defaultData: DataStoreState = {
     programs: [
-      { id: '1', title: '开场舞', performer: '舞蹈团', order: 1, completed: false },
-      { id: '2', title: '歌曲表演', performer: '歌手A', order: 2, completed: false },
-      { id: '3', title: '小品', performer: '喜剧组', order: 3, completed: false },
-      { id: '4', title: '魔术表演', performer: '魔术师', order: 4, completed: false },
-      { id: '5', title: '抽奖环节', performer: '主持人', order: 5, completed: false },
+      { id: '1', title: '开场舞', performers: [['编导', ['张三', '李四']], ['表演者', ['王五', '赵六']]], band_name: '舞蹈团', order: 1, completed: false },
+      { id: '2', title: '歌曲表演', performers: [['主唱', ['歌手A']]], band_name: null, order: 2, completed: false },
+      { id: '3', title: '小品', performers: [['演员', ['演员甲', '演员乙']], ['编剧', ['编剧A']]], band_name: '喜剧组', order: 3, completed: false },
+      { id: '4', title: '魔术表演', performers: [['魔术师', ['魔术师A']]], band_name: null, order: 4, completed: false },
+      { id: '5', title: '抽奖环节', performers: [['主持人', ['主持人A']]], band_name: null, order: 5, completed: false },
     ],
     danmakus: [],
     lotteryConfig: {
@@ -165,24 +165,17 @@ class DataStore {
     }
   }
 
-  updateProgramInfo(id: string, info: string): void {
-    const program = this.data.programs.find((p) => p.id === id);
-    if (program) {
-      program.info = info;
-      this.saveData();
-      console.log(`📝 节目详情已更新: ${program.title}`);
-    }
-  }
+
 
   // 添加新节目
-  addProgram(title: string, performer: string, order: number, parentId?: string, subOrder?: number): Program {
+  addProgram(title: string, order: number, performers?: [string | null, string[]][] | null, band_name?: string | null, parentId?: string, subOrder?: number): Program {
     const newProgram: Program = {
       id: Date.now().toString(),
       title,
-      performer: performer || '', // 允许表演者为空字符串
+      performers: performers || null,
+      band_name: band_name || null,
       order,
       completed: false,
-      info: '',
       parentId,
       subOrder,
     };
@@ -224,11 +217,12 @@ class DataStore {
   }
 
   // 更新节目基本信息（标题、表演者、顺序）
-  updateProgramDetails(id: string, title: string, performer: string, order: number, parentId?: string, subOrder?: number): void {
+  updateProgramDetails(id: string, title: string, order: number, performers?: [string | null, string[]][] | null, band_name?: string | null, parentId?: string, subOrder?: number): void {
     const program = this.data.programs.find((p) => p.id === id);
     if (program) {
       program.title = title;
-      program.performer = performer || ''; // 允许表演者为空字符串
+      program.performers = performers || null;
+      program.band_name = band_name || null;
       program.order = order;
       program.parentId = parentId;
       program.subOrder = subOrder;
@@ -297,6 +291,17 @@ class DataStore {
   clearDanmakus(): void {
     this.data.danmakus = [];
     this.saveData();
+  }
+
+  deleteDanmaku(id: string): boolean {
+    const index = this.data.danmakus.findIndex(d => d.id === id);
+    if (index !== -1) {
+      this.data.danmakus.splice(index, 1);
+      this.saveData();
+      console.log(`✅ 弹幕已删除: ${id}`);
+      return true;
+    }
+    return false;
   }
 
   // 抽奖相关方法

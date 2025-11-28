@@ -22,7 +22,7 @@ export async function POST(request: Request) {
       );
     }
 
-    const { title, performer, order, parentId, subOrder } = await request.json();
+    const { title, performers, band_name, order, parentId, subOrder } = await request.json();
     
     if (!title || order === undefined) {
       return NextResponse.json(
@@ -31,7 +31,7 @@ export async function POST(request: Request) {
       );
     }
 
-    const newProgram = dataStore.addProgram(title, performer, order, parentId, subOrder);
+    const newProgram = dataStore.addProgram(title, order, performers, band_name, parentId, subOrder);
 
     return NextResponse.json({ success: true, program: newProgram });
   } catch (error) {

@@ -9,11 +9,11 @@ export const revalidate = 0;
 export async function GET() {
   try {
     const allDanmakus = dataStore.getDanmakus();
-    // 只返回已审核的弹幕，按时间倒序排列，取最新的8条
+    // 只返回已审核的弹幕，按时间倒序排列，取最新的20条
     const approvedDanmakus = allDanmakus
       .filter(d => d.censor === true)
       .sort((a, b) => b.timestamp - a.timestamp)
-      .slice(0, 8);
+      .slice(0, 20);
     
     return NextResponse.json({ danmakus: approvedDanmakus });
   } catch (error) {
