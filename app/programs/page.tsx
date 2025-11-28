@@ -56,6 +56,14 @@ export default function ProgramsPage() {
     return expandedId === programId ? '▲ 点击收起' : '▼ 点击查看演职人员';
   }, [expandedId]);
 
+  // 判断节目是否有可展示的演职信息（乐队名或至少一条含姓名的职位）
+  const hasPerformerContent = useCallback((program: Program) => {
+    if (program.band_name) return true;
+    if (!program.performers || program.performers.length === 0) return false;
+    // 有任何一项 names 非空即视为有内容
+    return program.performers.some(([_, names]) => Array.isArray(names) && names.length > 0);
+  }, []);
+
   // 获取程序显示编号
   const getProgramNumber = (program: Program, index: number) => {
     if (program.parentId) {
@@ -112,10 +120,10 @@ export default function ProgramsPage() {
                         ? 'bg-green-400/40 border-green-300/50'
                         : 'bg-white/40 border-white/30'
                     } ${expandedId === program.id ? 'shadow-lg' : ''} ${
-                      (program.performers || program.band_name) ? 'cursor-pointer' : ''
+                      hasPerformerContent(program) ? 'cursor-pointer' : ''
                     }`}
                     onClick={(e) => {
-                      if (program.performers || program.band_name) {
+                      if (hasPerformerContent(program)) {
                         // 添加视觉反馈
                         const target = e.currentTarget;
                         target.style.transform = 'scale(0.98)';
@@ -174,7 +182,7 @@ export default function ProgramsPage() {
                           )}
                           
                           {/* 展开的详情内容 */}
-                          {expandedId === program.id && (program.performers || program.band_name) && (
+                          {expandedId === program.id && hasPerformerContent(program) && (
                             <div className="mt-3">
                               <ProgramPerformersDisplay 
                                 performers={program.performers} 
@@ -186,7 +194,7 @@ export default function ProgramsPage() {
                           )}
                           
                           {/* 如果有演职人员信息，显示展开提示 */}
-                          {(program.performers || program.band_name) && (
+                          {hasPerformerContent(program) && (
                             <p className="text-xs text-gray-700 mt-2 drop-shadow-md">
                               {getToggleText(program.id)}
                             </p>
