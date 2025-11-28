@@ -6,6 +6,7 @@ import { Program, Danmaku, LotteryConfig, LotteryResult } from '@/types';
 interface DataStoreState {
   programs: Program[];
   danmakus: Danmaku[];
+  bannedIps: string[];
   lotteryConfig: LotteryConfig;
   lotteryResults: LotteryResult[]; // 改为数组，支持多次抽奖
 }
@@ -24,6 +25,7 @@ class DataStore {
       { id: '5', title: '抽奖环节', performers: [['主持人', ['主持人A']]], band_name: null, order: 5, completed: false },
     ],
     danmakus: [],
+  bannedIps: [],
     lotteryConfig: {
       minNumber: 1,
       maxNumber: 100,
@@ -238,6 +240,67 @@ class DataStore {
     return [...this.data.danmakus].sort((a, b) => b.timestamp - a.timestamp);
   }
 
+  // Banned IPs
+  getBannedIps(): string[] {
+    this.reloadData();
+    return [...this.data.bannedIps];
+  }
+
+  // Ban IP and unapprove existing censored danmakus from that IP
+  banIp(ip: string): { success: boolean; affected: number } {
+    if (!ip) return { success: false, affected: 0 };
+    this.reloadData();
+    if (!this.data.bannedIps.includes(ip)) {
+      this.data.bannedIps.push(ip);
+      // 取消该 IP 的历史已审核弹幕
+      let affected = 0;
+      const normalizeIp = (ipStr?: string) => {
+        if (!ipStr) return '';
+        let ipx = ipStr.replace(/^\[|\]$/g, '');
+        ipx = ipx.split('%')[0];
+        const match = ipx.match(/(?:.*::ffff:)?(\d+\.\d+\.\d+\.\d+)$/i);
+        if (match) return match[1];
+        return ipx;
+      };
+      this.data.danmakus.forEach((d) => {
+        const did = normalizeIp(d.ip);
+        if (did === ip && d.censor === true) {
+          d.censor = false;
+          delete (d as any).censoredAt;
+          affected += 1;
+        }
+      });
+      this.saveData();
+      console.log(`🔒 已封禁 IP: ${ip}，取消审核的弹幕数量: ${affected}`);
+      return { success: true, affected };
+    }
+    return { success: false, affected: 0 };
+  }
+
+  unbanIp(ip: string): boolean {
+    this.reloadData();
+    const idx = this.data.bannedIps.indexOf(ip);
+    if (idx !== -1) {
+      this.data.bannedIps.splice(idx, 1);
+      this.saveData();
+      console.log(`🔓 已解封 IP: ${ip}`);
+      return true;
+    }
+    return false;
+  }
+
+  clearBannedIps(): void {
+    this.reloadData();
+    this.data.bannedIps = [];
+    this.saveData();
+    console.log('🧹 已清空所有封禁 IP');
+  }
+
+  isIpBanned(ip: string): boolean {
+    this.reloadData();
+    return this.data.bannedIps.includes(ip);
+  }
+
   // 获取已审核的弹幕
   getCensoredDanmakus(): Danmaku[] {
     // 从文件重新加载以确保数据最新
@@ -252,7 +315,7 @@ class DataStore {
       });
   }
 
-  addDanmaku(content: string): Danmaku {
+  addDanmaku(content: string, ip?: string): Danmaku {
     // 在添加前重新加载数据，确保基于最新状态
     this.reloadData();
     
@@ -261,6 +324,7 @@ class DataStore {
       content,
       timestamp: Date.now(),
       censor: false, // 默认未审核
+      ip,
     };
     this.data.danmakus.push(danmaku);
     this.saveData();

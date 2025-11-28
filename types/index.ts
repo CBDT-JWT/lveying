@@ -17,6 +17,7 @@ export interface Danmaku {
   timestamp: number;
   censor: boolean; // 审核状态，true 表示已审核通过
   censoredAt?: number; // 审核通过的时间戳
+  ip?: string; // 记录发送者的IP地址，用于审核和日志（不应公开展示）
 }
 
 export interface LotteryConfig {

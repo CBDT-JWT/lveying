@@ -15,7 +15,9 @@ export async function GET() {
       .sort((a, b) => b.timestamp - a.timestamp)
       .slice(0, 20);
     
-    return NextResponse.json({ danmakus: approvedDanmakus });
+  // 出于隐私原因，不返回 IP 地址给公众
+  const publicDanmakus = approvedDanmakus.map(({ id, content, timestamp, censor, censoredAt }) => ({ id, content, timestamp, censor, censoredAt }));
+  return NextResponse.json({ danmakus: publicDanmakus });
   } catch (error) {
     return NextResponse.json(
       { error: '获取弹幕失败' },

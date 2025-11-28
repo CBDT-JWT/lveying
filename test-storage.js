@@ -16,6 +16,10 @@ if (fs.existsSync(dataFile)) {
   const data = JSON.parse(fs.readFileSync(dataFile, 'utf-8'));
   console.log('   节目数量:', data.programs?.length || 0);
   console.log('   弹幕数量:', data.danmakus?.length || 0);
+  // 如果有记录 IP，则打印出样例（仅用于测试）
+  const sampleWithIp = data.danmakus?.find(d => d.ip);
+  console.log('   存在 IP 记录:', sampleWithIp ? `是（示例: ${sampleWithIp.ip}）` : '否');
+  console.log('   封禁 IP 列表长度:', data.bannedIps?.length || 0);
   console.log('   抽奖配置:', data.lotteryConfig ? '✅' : '❌');
   console.log('   抽奖结果:', data.lotteryResult ? '✅' : '❌');
 } else {

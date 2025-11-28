@@ -1,8 +1,9 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import * as XLSX from 'xlsx';
 import { Danmaku } from '@/types';
 
 export default function AdminDanmakuPage() {
@@ -10,7 +11,19 @@ export default function AdminDanmakuPage() {
   const [loading, setLoading] = useState(true);
   const [deleting, setDeleting] = useState<string | null>(null);
   const [showOnlyPending, setShowOnlyPending] = useState(false);
+  const [exporting, setExporting] = useState(false);
+  const [bannedIps, setBannedIps] = useState<string[]>([]);
+  const [showBannedList, setShowBannedList] = useState(false);
   const router = useRouter();
+
+  const normalizeIpLocal = (ipStr?: string) => {
+    if (!ipStr) return '';
+    let ip = ipStr.replace(/^\[|\]$/g, '');
+    ip = ip.split('%')[0];
+    const match = ip.match(/(?:.*::ffff:)?(\d+\.\d+\.\d+\.\d+)$/i);
+    if (match) return match[1];
+    return ip;
+  };
 
   useEffect(() => {
     const token = localStorage.getItem('adminToken');
@@ -18,7 +31,8 @@ export default function AdminDanmakuPage() {
       router.push('/admin');
       return;
     }
-    fetchDanmakus();
+  fetchDanmakus();
+  fetchBannedIps();
     // 每3秒自动刷新
     const interval = setInterval(fetchDanmakus, 3000);
     return () => clearInterval(interval);
@@ -95,6 +109,116 @@ export default function AdminDanmakuPage() {
       console.error('清空弹幕失败:', error);
     }
   };
+
+  const fetchBannedIps = async () => {
+    const token = localStorage.getItem('adminToken');
+    if (!token) return;
+    try {
+      const response = await fetch('/api/admin/banned-ips', {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      const data = await response.json();
+      setBannedIps(data.ips || []);
+    } catch (error) {
+      console.error('获取封禁IP列表失败:', error);
+    }
+  };
+
+  const banIp = async (ip: string) => {
+    if (!confirm(`确认封禁 IP ${ip} 吗？`)) return;
+    const token = localStorage.getItem('adminToken');
+    if (!token) return;
+    try {
+  const response = await fetch('/api/admin/banned-ips', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ ip }),
+      });
+      const result = await response.json();
+      if (response.ok) {
+        // 如果后端返回规范化 ip，则使用后端返回的 ip 来更新本地列表
+        const addedIp = result.ip || ip;
+        setBannedIps((prev) => {
+          if (prev.includes(addedIp)) return prev;
+          return [...prev, addedIp];
+        });
+        // 重新拉取以确保和服务端一致
+        fetchBannedIps();
+        // 刷新弹幕列表以反映取消审核的历史弹幕
+        fetchDanmakus();
+        // 显示提示，告知取消了多少已审核弹幕
+        if (result.affected && result.affected > 0) {
+          alert(`已封禁 ${addedIp}，并取消了 ${result.affected} 条已审核弹幕`);
+        } else {
+          alert(`已封禁 ${addedIp}`);
+        }
+      } else {
+        alert(result.error || '封禁失败');
+      }
+    } catch (error) {
+      console.error('封禁IP失败:', error);
+    }
+  };
+
+  const unbanIp = async (ip: string) => {
+    if (!confirm(`确认解封 IP ${ip} 吗？`)) return;
+    const token = localStorage.getItem('adminToken');
+    if (!token) return;
+    try {
+      const response = await fetch('/api/admin/banned-ips', {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ ip }),
+      });
+      const result = await response.json();
+      if (response.ok) {
+        const removedIp = result.ip || ip;
+        setBannedIps((prev) => prev.filter((p) => p !== removedIp));
+        // 为了避免 UI 与服务端不同步，重新拉取一次最新封禁列表
+        fetchBannedIps();
+        // 刷新弹幕列表（虽然解封不自动恢复历史弹幕为已审核，但可保持 UI 最新）
+        fetchDanmakus();
+        alert(`已解封 ${removedIp}`);
+      } else {
+        alert(result.error || '解封失败');
+      }
+    } catch (error) {
+      console.error('解封IP失败:', error);
+    }
+  };
+
+  const exportDanmakus = useCallback(() => {
+    if (filteredDanmakus.length === 0) return;
+    try {
+      setExporting(true);
+      // 构建表头
+      const rows: (string | number)[][] = [["时间", "IP", "是否审核", "内容"]];
+  filteredDanmakus.forEach(d => {
+        rows.push([
+          new Date(d.timestamp).toLocaleString('zh-CN'),
+          d.ip || '',
+          d.censor ? '已审核' : '未审核',
+          d.content || '',
+        ]);
+      });
+
+      const ws = XLSX.utils.aoa_to_sheet(rows);
+      const wb = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(wb, ws, '弹幕导出');
+      const wbout = XLSX.write(wb, { bookType: 'xlsx', type: 'array' });
+  const blob = new Blob([wbout], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `danmakus_${Date.now()}.xlsx`;
+      a.click();
+      URL.revokeObjectURL(url);
+    } catch (err) {
+      console.error('导出失败:', err);
+    } finally {
+      setExporting(false);
+    }
+  }, [filteredDanmakus]);
 
   const toggleCensor = async (id: string, currentCensor: boolean) => {
     const token = localStorage.getItem('adminToken');
@@ -183,6 +307,19 @@ export default function AdminDanmakuPage() {
             
             <div className="flex gap-3">
               <button
+                onClick={exportDanmakus}
+                disabled={exporting || filteredDanmakus.length === 0}
+                className="px-4 py-2 backdrop-blur-md bg-white/20 border border-white/30 text-gray-800 rounded-xl hover:bg-white/30 transition-all disabled:opacity-50"
+              >
+                {exporting ? '导出中...' : '导出弹幕 (Excel)'}
+              </button>
+              <button
+                onClick={() => setShowBannedList((s) => !s)}
+                className="px-4 py-2 backdrop-blur-md bg-white/20 border border-white/30 text-gray-800 rounded-xl hover:bg-white/30 transition-all"
+              >
+                封禁 IP 列表 ({bannedIps.length})
+              </button>
+              <button
                 onClick={clearAllDanmakus}
                 className="px-6 py-2 backdrop-blur-md bg-white/20 border border-white/30 text-gray-800 rounded-xl hover:bg-white/30 transition-all"
               >
@@ -196,6 +333,64 @@ export default function AdminDanmakuPage() {
               </Link>
             </div>
           </div>
+          {showBannedList && (
+            <div className="mt-4 p-4 bg-white/10 rounded-xl border border-white/20">
+              <div className="flex items-center justify-between mb-3">
+                <div className="text-sm font-semibold">封禁 IP 列表 ({bannedIps.length})</div>
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={async () => {
+                      if (!confirm('确认清空所有封禁 IP 吗？')) return;
+                      const token = localStorage.getItem('adminToken');
+                      if (!token) return;
+                      try {
+                        const response = await fetch('/api/admin/banned-ips', {
+                          method: 'DELETE',
+                          headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+                          body: JSON.stringify({}),
+                        });
+                        if (response.ok) {
+                          setBannedIps([]);
+                        } else {
+                          const data = await response.json();
+                          alert(data.error || '清空失败');
+                        }
+                      } catch (err) {
+                        console.error('清空封禁失败:', err);
+                      }
+                    }}
+                    className="px-3 py-1 bg-red-500/60 text-white rounded-lg text-sm"
+                  >
+                    清空封禁
+                  </button>
+                  <button
+                    onClick={() => setShowBannedList(false)}
+                    className="px-3 py-1 bg-white/20 text-gray-800 rounded-lg text-sm"
+                  >
+                    关闭
+                  </button>
+                </div>
+              </div>
+              <div className="space-y-2 max-h-40 overflow-y-auto">
+                {bannedIps.map(ip => (
+                  <div key={ip} className="flex justify-between items-center">
+                    <div className="text-sm text-gray-700">{ip}</div>
+                    <div>
+                      <button
+                        onClick={() => unbanIp(ip)}
+                        className="px-3 py-1 bg-green-500/60 text-white rounded-lg text-sm"
+                      >
+                        解封
+                      </button>
+                    </div>
+                  </div>
+                ))}
+                {bannedIps.length === 0 && (
+                  <div className="text-sm text-gray-500">暂无封禁 IP</div>
+                )}
+              </div>
+            </div>
+          )}
 
           {/* 统计信息 */}
           <div className="grid grid-cols-3 gap-4 mb-6">
@@ -261,6 +456,9 @@ export default function AdminDanmakuPage() {
                       <p className="text-sm text-gray-600 drop-shadow-lg">
                         {new Date(danmaku.timestamp).toLocaleString('zh-CN')}
                       </p>
+                      {danmaku.ip && (
+                        <p className="text-xs text-gray-500 mt-1">IP: {danmaku.ip}</p>
+                      )}
                     </div>
                     <div className="ml-4 flex flex-col gap-2">
                       <button
@@ -280,6 +478,18 @@ export default function AdminDanmakuPage() {
                       >
                         {deleting === danmaku.id ? '删除中...' : '删除'}
                       </button>
+                      {danmaku.ip && (
+                        <button
+                          onClick={() => (bannedIps.includes(normalizeIpLocal(danmaku.ip)) ? unbanIp(danmaku.ip!) : banIp(danmaku.ip!))}
+                          className={`px-4 py-2 rounded-lg font-medium transition-all backdrop-blur-md border text-white ${
+                            bannedIps.includes(normalizeIpLocal(danmaku.ip))
+                              ? 'bg-yellow-500/60 border-yellow-400/50 hover:bg-yellow-500/80'
+                              : 'bg-red-500/60 border-red-400/50 hover:bg-red-500/80'
+                          }`}
+                        >
+                          {bannedIps.includes(normalizeIpLocal(danmaku.ip)) ? '解封IP' : '封禁IP'}
+                        </button>
+                      )}
                     </div>
                   </div>
                 </div>

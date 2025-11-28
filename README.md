@@ -95,6 +95,8 @@ npm start
 - `GET /api/programs` - 获取节目单
 - `GET /api/lottery/result` - 获取抽奖结果
 - `POST /api/danmaku` - 发送弹幕
+   - 注意：每条弹幕会记录发送者的IP地址，用于审核与日志，默认不会在公开接口中展示。
+      - 存储时会把一些代理返回的 IPv6 映射 IPv4（例如 `::ffff:1.2.3.4`）规范化为 `1.2.3.4`。
 
 ### 管理员API（需要Token）
 
@@ -102,6 +104,9 @@ npm start
 - `POST /api/programs` - 更新节目单
 - `PATCH /api/programs` - 更新节目状态
 - `GET /api/danmaku` - 获取弹幕列表
+   - 管理员接口返回的弹幕包含发送者的IP（仅供管理员审核与日志使用）。
+   - 管理员可封禁 IP（`POST /api/admin/banned-ips` / `DELETE /api/admin/banned-ips`），被封禁的 IP 无法通过 `POST /api/danmaku` 发送弹幕。
+      - 管理员可封禁 IP（`POST /api/admin/banned-ips` / `DELETE /api/admin/banned-ips`），被封禁的 IP 无法通过 `POST /api/danmaku` 发送弹幕。封禁会自动取消该 IP 已审核的历史弹幕（不再公开展示）。
 - `DELETE /api/danmaku` - 清空弹幕
 - `GET /api/lottery/config` - 获取抽奖配置
 - `POST /api/lottery/config` - 更新抽奖配置
