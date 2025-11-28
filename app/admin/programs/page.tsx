@@ -20,6 +20,10 @@ export default function AdminProgramsPage() {
   const [newTitle, setNewTitle] = useState('');
   const [newPerformer, setNewPerformer] = useState('');
   const [newOrder, setNewOrder] = useState(0);
+  const [newParentId, setNewParentId] = useState('');
+  const [newSubOrder, setNewSubOrder] = useState(1);
+  const [editParentId, setEditParentId] = useState('');
+  const [editSubOrder, setEditSubOrder] = useState(1);
   const router = useRouter();
 
   useEffect(() => {
@@ -114,6 +118,8 @@ export default function AdminProgramsPage() {
     setEditTitle(program.title);
     setEditPerformer(program.performer);
     setEditOrder(program.order);
+    setEditParentId(program.parentId || '');
+    setEditSubOrder(program.subOrder || 1);
   };
 
   // 保存基本信息
@@ -138,7 +144,9 @@ export default function AdminProgramsPage() {
           id, 
           title: editTitle, 
           performer: editPerformer, 
-          order: editOrder 
+          order: editOrder,
+          parentId: editParentId || undefined,
+          subOrder: editParentId ? editSubOrder : undefined
         }),
       });
 
@@ -146,7 +154,14 @@ export default function AdminProgramsPage() {
         setPrograms(
           programs.map((p) => 
             p.id === id 
-              ? { ...p, title: editTitle, performer: editPerformer, order: editOrder } 
+              ? { 
+                  ...p, 
+                  title: editTitle, 
+                  performer: editPerformer, 
+                  order: editOrder,
+                  parentId: editParentId || undefined,
+                  subOrder: editParentId ? editSubOrder : undefined
+                } 
               : p
           )
         );
@@ -167,6 +182,8 @@ export default function AdminProgramsPage() {
     setEditTitle('');
     setEditPerformer('');
     setEditOrder(0);
+    setEditParentId('');
+    setEditSubOrder(1);
   };
 
   // 添加新节目
@@ -190,7 +207,9 @@ export default function AdminProgramsPage() {
         body: JSON.stringify({ 
           title: newTitle, 
           performer: newPerformer, 
-          order: newOrder 
+          order: newOrder,
+          parentId: newParentId || undefined,
+          subOrder: newParentId ? newSubOrder : undefined
         }),
       });
 
@@ -201,6 +220,8 @@ export default function AdminProgramsPage() {
         setNewTitle('');
         setNewPerformer('');
         setNewOrder(programs.length + 1);
+        setNewParentId('');
+        setNewSubOrder(1);
         alert('节目已添加！');
       }
     } catch (error) {
@@ -235,6 +256,26 @@ export default function AdminProgramsPage() {
     } catch (error) {
       console.error('删除节目失败:', error);
       alert('删除失败，请重试');
+    }
+  };
+
+  // 获取主节目列表（用于下拉选择）
+  const getMainPrograms = () => {
+    return programs.filter(p => !p.parentId);
+  };
+
+  // 获取程序显示编号
+  const getProgramNumber = (program: Program) => {
+    if (program.parentId) {
+      // 子节目显示为 "1.1", "1.2" 等
+      const parentIndex = programs.findIndex(p => p.id === program.parentId && !p.parentId);
+      const mainProgramNumber = parentIndex + 1;
+      return `${mainProgramNumber}.${program.subOrder || 1}`;
+    } else {
+      // 主节目显示为 "1", "2" 等
+      const mainPrograms = programs.filter(p => !p.parentId);
+      const mainIndex = mainPrograms.findIndex(p => p.id === program.id);
+      return (mainIndex + 1).toString();
     }
   };
 
@@ -316,6 +357,38 @@ export default function AdminProgramsPage() {
                     placeholder="节目顺序"
                   />
                 </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    父节目（可选）
+                  </label>
+                  <select
+                    value={newParentId}
+                    onChange={(e) => setNewParentId(e.target.value)}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 text-gray-800"
+                  >
+                    <option value="">无（主节目）</option>
+                    {getMainPrograms().map((program) => (
+                      <option key={program.id} value={program.id}>
+                        {getProgramNumber(program)}. {program.title}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                {newParentId && (
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      子节目序号
+                    </label>
+                    <input
+                      type="number"
+                      value={newSubOrder}
+                      onChange={(e) => setNewSubOrder(parseInt(e.target.value) || 1)}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 text-gray-800"
+                      placeholder="子节目序号"
+                      min="1"
+                    />
+                  </div>
+                )}
                 <div className="flex space-x-2">
                   <button
                     onClick={addProgram}
@@ -330,6 +403,8 @@ export default function AdminProgramsPage() {
                       setNewTitle('');
                       setNewPerformer('');
                       setNewOrder(0);
+                      setNewParentId('');
+                      setNewSubOrder(1);
                     }}
                     className="px-6 py-2 bg-gray-300 text-gray-700 rounded-lg hover:bg-gray-400 transition-all"
                   >
@@ -363,13 +438,19 @@ export default function AdminProgramsPage() {
 
           {/* 节目列表 */}
           <div className="space-y-3">
-            {programs.map((program, index) => (
+            {programs.map((program, index) => {
+              const isSubProgram = !!program.parentId;
+              const programNumber = getProgramNumber(program);
+              
+              return (
               <div
                 key={program.id}
                 className={`rounded-xl p-4 transition-all border-2 ${
+                  isSubProgram ? 'ml-8 bg-blue-50 border-blue-200' : ''
+                } ${
                   program.completed
                     ? 'bg-green-50 border-green-300'
-                    : 'bg-white border-gray-200'
+                    : isSubProgram ? 'bg-blue-50 border-blue-200' : 'bg-white border-gray-200'
                 }`}
               >
                 <div className="flex items-center">
@@ -378,13 +459,15 @@ export default function AdminProgramsPage() {
                       onClick={() =>
                         toggleProgramStatus(program.id, !program.completed)
                       }
-                      className={`w-10 h-10 rounded-full flex items-center justify-center font-bold text-lg transition-all ${
+                      className={`${
+                        isSubProgram ? 'w-12 h-6 rounded text-xs' : 'w-10 h-10 rounded-full text-lg'
+                      } flex items-center justify-center font-bold transition-all ${
                         program.completed
                           ? 'bg-green-500 text-white hover:bg-green-600'
                           : 'bg-gray-200 text-gray-600 hover:bg-gray-300'
                       }`}
                     >
-                      {program.completed ? '✓' : index + 1}
+                      {program.completed ? '✓' : programNumber}
                     </button>
                   </div>
                   <div className="flex-1">
@@ -411,6 +494,28 @@ export default function AdminProgramsPage() {
                           className="w-32 px-3 py-1 border border-gray-300 rounded text-gray-800 text-sm"
                           placeholder="顺序"
                         />
+                        <select
+                          value={editParentId}
+                          onChange={(e) => setEditParentId(e.target.value)}
+                          className="w-48 px-3 py-1 border border-gray-300 rounded text-gray-800 text-sm"
+                        >
+                          <option value="">无（主节目）</option>
+                          {getMainPrograms().filter(p => p.id !== program.id).map((p) => (
+                            <option key={p.id} value={p.id}>
+                              {getProgramNumber(p)}. {p.title}
+                            </option>
+                          ))}
+                        </select>
+                        {editParentId && (
+                          <input
+                            type="number"
+                            value={editSubOrder}
+                            onChange={(e) => setEditSubOrder(parseInt(e.target.value) || 1)}
+                            className="w-24 px-3 py-1 border border-gray-300 rounded text-gray-800 text-sm"
+                            placeholder="子序号"
+                            min="1"
+                          />
+                        )}
                         <div className="flex space-x-2">
                           <button
                             onClick={() => saveBasicInfo(program.id)}
@@ -440,6 +545,11 @@ export default function AdminProgramsPage() {
                         </h3>
                         <p className="text-sm text-gray-600 mt-1">
                           表演者：{program.performer} | 顺序：{program.order}
+                          {program.parentId && (
+                            <span className="ml-2 text-blue-600">
+                              (子节目 {program.subOrder})
+                            </span>
+                          )}
                         </p>
                       </>
                     )}
@@ -541,7 +651,8 @@ $$a^2 + b^2 = c^2$$`}
                   </div>
                 )}
               </div>
-            ))}
+            );
+            })}
           </div>
         </div>
       </div>

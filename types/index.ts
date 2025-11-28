@@ -7,6 +7,8 @@ export interface Program {
   order: number;
   completed: boolean;
   info?: string; // 节目详情，支持 Markdown 格式
+  parentId?: string; // 父节目ID，如果为空则是主节目
+  subOrder?: number; // 子节目排序（在同一个父节目下的顺序）
 }
 
 export interface Danmaku {

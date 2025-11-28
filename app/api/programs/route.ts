@@ -14,7 +14,7 @@ function verifyAdmin(request: Request) {
 // GET - 获取节目单
 export async function GET() {
   try {
-    const programs = dataStore.getPrograms();
+    const programs = dataStore.getHierarchicalPrograms();
     return NextResponse.json({ programs });
   } catch (error) {
     return NextResponse.json(
@@ -81,7 +81,7 @@ export async function PUT(request: Request) {
       );
     }
 
-    const { id, title, performer, order, info } = await request.json();
+    const { id, title, performer, order, info, parentId, subOrder } = await request.json();
     
     if (!id) {
       return NextResponse.json(
@@ -92,7 +92,7 @@ export async function PUT(request: Request) {
 
     // 如果提供了基本信息，更新基本信息
     if (title !== undefined && performer !== undefined && order !== undefined) {
-      dataStore.updateProgramDetails(id, title, performer, order);
+      dataStore.updateProgramDetails(id, title, performer, order, parentId, subOrder);
     }
     
     // 如果提供了详情信息，更新详情

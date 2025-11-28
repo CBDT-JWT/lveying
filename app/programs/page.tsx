@@ -41,6 +41,21 @@ export default function ProgramsPage() {
     setExpandedId(expandedId === id ? null : id);
   };
 
+  // 获取程序显示编号
+  const getProgramNumber = (program: Program, index: number) => {
+    if (program.parentId) {
+      // 子节目显示为 "1.1", "1.2" 等
+      const parentIndex = programs.findIndex(p => p.id === program.parentId && !p.parentId);
+      const mainProgramNumber = parentIndex + 1;
+      return `${mainProgramNumber}.${program.subOrder || 1}`;
+    } else {
+      // 主节目显示为 "1", "2" 等
+      const mainPrograms = programs.filter(p => !p.parentId);
+      const mainIndex = mainPrograms.findIndex(p => p.id === program.id);
+      return (mainIndex + 1).toString();
+    }
+  };
+
   return (
     <div 
       className="min-h-screen"
@@ -85,10 +100,15 @@ export default function ProgramsPage() {
             <div className="space-y-3">
               {programs.map((program, index) => {
                 const isCurrentProgram = program.id === currentProgramId;
+                const isSubProgram = !!program.parentId;
+                const programNumber = getProgramNumber(program, index);
+                
                 return (
                   <div
                     key={program.id}
                     className={`rounded-xl p-4 transition-all cursor-pointer backdrop-blur-md border-2 ${
+                      isSubProgram ? 'ml-6' : '' // 子节目缩进
+                    } ${
                       isCurrentProgram
                         ? 'bg-yellow-400/50 border-yellow-500/70 shadow-xl'
                         : program.completed
@@ -99,7 +119,9 @@ export default function ProgramsPage() {
                   >
                     <div className="flex items-start">
                       <div
-                        className={`flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center font-bold text-sm mr-3 backdrop-blur-md ${
+                        className={`flex-shrink-0 ${
+                          isSubProgram ? 'w-10 h-6 rounded text-xs' : 'w-8 h-8 rounded-full text-sm'
+                        } flex items-center justify-center font-bold mr-3 backdrop-blur-md ${
                           isCurrentProgram
                             ? 'bg-yellow-500/90 text-white'
                             : program.completed
@@ -107,7 +129,7 @@ export default function ProgramsPage() {
                             : 'bg-gray-400/70 text-white'
                         }`}
                       >
-                        {index + 1}
+                        {programNumber}
                       </div>
                       <div className="flex-1">
                         <h3

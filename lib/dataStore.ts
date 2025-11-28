@@ -117,7 +117,39 @@ class DataStore {
   getPrograms(): Program[] {
     // 从文件重新加载以确保数据最新
     this.reloadData();
-    return [...this.data.programs].sort((a, b) => a.order - b.order);
+    return [...this.data.programs].sort((a, b) => {
+      // 先按 order 排序，然后按 parentId 和 subOrder 排序
+      if (a.order !== b.order) {
+        return a.order - b.order;
+      }
+      // 如果是同一个主节目的子节目，按 subOrder 排序
+      if (a.parentId === b.parentId) {
+        return (a.subOrder || 0) - (b.subOrder || 0);
+      }
+      // 主节目排在子节目前面
+      if (!a.parentId && b.parentId) return -1;
+      if (a.parentId && !b.parentId) return 1;
+      return 0;
+    });
+  }
+
+  // 获取层次化的节目列表（主节目和子节目分组）
+  getHierarchicalPrograms(): Program[] {
+    this.reloadData();
+    const allPrograms = [...this.data.programs];
+    const mainPrograms = allPrograms.filter(p => !p.parentId).sort((a, b) => a.order - b.order);
+    const result: Program[] = [];
+
+    mainPrograms.forEach(mainProgram => {
+      result.push(mainProgram);
+      // 添加该主节目的所有子节目
+      const subPrograms = allPrograms
+        .filter(p => p.parentId === mainProgram.id)
+        .sort((a, b) => (a.subOrder || 0) - (b.subOrder || 0));
+      result.push(...subPrograms);
+    });
+
+    return result;
   }
 
   updatePrograms(programs: Program[]): void {
@@ -143,7 +175,7 @@ class DataStore {
   }
 
   // 添加新节目
-  addProgram(title: string, performer: string, order: number): Program {
+  addProgram(title: string, performer: string, order: number, parentId?: string, subOrder?: number): Program {
     const newProgram: Program = {
       id: Date.now().toString(),
       title,
@@ -151,10 +183,12 @@ class DataStore {
       order,
       completed: false,
       info: '',
+      parentId,
+      subOrder,
     };
     this.data.programs.push(newProgram);
     this.saveData();
-    console.log(`➕ 新节目已添加: ${title}`);
+    console.log(`➕ 新节目已添加: ${title}${parentId ? ' (子节目)' : ''}`);
     return newProgram;
   }
 
@@ -163,19 +197,41 @@ class DataStore {
     const index = this.data.programs.findIndex((p) => p.id === id);
     if (index !== -1) {
       const program = this.data.programs[index];
-      this.data.programs.splice(index, 1);
+      
+      // 如果删除的是主节目，同时删除其所有子节目
+      if (!program.parentId) {
+        const subProgramsToDelete = this.data.programs.filter(p => p.parentId === id);
+        subProgramsToDelete.forEach(subProgram => {
+          const subIndex = this.data.programs.findIndex(p => p.id === subProgram.id);
+          if (subIndex !== -1) {
+            this.data.programs.splice(subIndex, 1);
+          }
+        });
+        console.log(`🗑️ 主节目及其 ${subProgramsToDelete.length} 个子节目已删除: ${program.title}`);
+      }
+      
+      // 删除主节目本身
+      const finalIndex = this.data.programs.findIndex((p) => p.id === id);
+      if (finalIndex !== -1) {
+        this.data.programs.splice(finalIndex, 1);
+      }
+      
       this.saveData();
-      console.log(`🗑️ 节目已删除: ${program.title}`);
+      if (program.parentId) {
+        console.log(`🗑️ 子节目已删除: ${program.title}`);
+      }
     }
   }
 
   // 更新节目基本信息（标题、表演者、顺序）
-  updateProgramDetails(id: string, title: string, performer: string, order: number): void {
+  updateProgramDetails(id: string, title: string, performer: string, order: number, parentId?: string, subOrder?: number): void {
     const program = this.data.programs.find((p) => p.id === id);
     if (program) {
       program.title = title;
       program.performer = performer || ''; // 允许表演者为空字符串
       program.order = order;
+      program.parentId = parentId;
+      program.subOrder = subOrder;
       this.saveData();
       console.log(`✏️ 节目信息已更新: ${title}`);
     }

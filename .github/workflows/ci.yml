@@ -56,7 +56,8 @@ jobs:
             "jiangwt23@mails.tsinghua.edu.cn"
           cc: |
             "gaw23@mails.tsinghua.edu.cn",
-            "wjiang0415@outlook.com"
+            "wjiang0415@outlook.com",
+            "wjiang0415@gmail.com"
 
           from: "CI Bot <bot@mail.lveying.live>"
           body: |
