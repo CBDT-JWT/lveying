@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { Program } from '@/types';
+import MarkdownRenderer from '@/components/MarkdownRenderer';
 import ProgramPerformersDisplay from '@/components/ProgramPerformersDisplay';
 import PerformersEditor from '@/components/PerformersEditor-v3';
 
@@ -497,11 +498,11 @@ export default function AdminProgramsPage() {
                       </div>
                     ) : (
                       <>
-                        <h3 className={`text-lg font-semibold ${
+                        <div className={`text-lg font-semibold ${
                           program.completed ? 'text-green-700' : 'text-gray-800'
                         }`}>
-                          {program.title}
-                        </h3>
+                          <MarkdownRenderer content={program.title} />
+                        </div>
                         <p className="text-sm text-gray-600 mt-1">
                           演职人员：{formatPerformersShort(program.performers, program.band_name)} | 顺序：{program.order}
                           {program.parentId && (

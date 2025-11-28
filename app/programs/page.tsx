@@ -3,6 +3,7 @@
 import { useEffect, useState, useCallback, useRef, useMemo } from 'react';
 import { Program } from '@/types';
 import ProgramPerformersDisplay from '@/components/ProgramPerformersDisplay';
+import MarkdownRenderer from '@/components/MarkdownRenderer';
 import GuestNavBar from '@/components/GuestNavBar';
 import BuildTime from '@/components/BuildTime';
 
@@ -156,7 +157,7 @@ export default function ProgramsPage() {
                         </div>
                       )}
                       <div className="flex-1">
-                        <h3
+                        <div
                           className={`font-semibold text-lg drop-shadow-md ${
                             isCurrentProgram
                               ? 'text-yellow-900'
@@ -164,9 +165,9 @@ export default function ProgramsPage() {
                               ? 'text-green-700'
                             : 'text-gray-800'
                         }`}
-                      >
-                        {program.title}
-                      </h3>
+                        >
+                          <MarkdownRenderer content={program.title} />
+                        </div>
                       {/* 对于特殊情况，直接显示演职人员信息，不可折叠 */}
                       {isSimpleNameList(program.performers) ? (
                         <div className="mt-3">
