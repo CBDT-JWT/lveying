@@ -49,7 +49,7 @@ export default function MarkdownRenderer({ content, formatNames = false, classNa
   html = html.replace(/^### (.+$)/gim, '<h3 class="text-lg font-semibold text-gray-800 drop-shadow-lg mt-4 mb-2 text-left break-all whitespace-normal">$1</h3>');
   html = html.replace(/^## (.+$)/gim, '<h2 class="text-lg font-bold text-gray-800 mt-10 mb-3 text-center break-all whitespace-normal">$1</h2>');
   html = html.replace(/^# (.+$)/gim, '<h1 class="text-2xl font-bold text-gray-800 drop-shadow-lg mt-8 mb-4 text-left break-all whitespace-normal">$1</h1>');
-
+  if(formatNames){
     // 处理职位和人员格式（**职位**：人员名单）
     html = html.replace(/^(?!<)(?:\*\*([^*]+)\*\*\s*)?(.+?)(?=\n|$)/gm,(match, title, names) => {
       const safeTitle = title?.trim() || '';
@@ -84,7 +84,7 @@ export default function MarkdownRenderer({ content, formatNames = false, classNa
         </div>`;
       }
     });
-    
+  }
     // 处理其他粗体 **text** 或 __text__
     html = html.replace(/\*\*(.+?)\*\*/g, '<strong class="font-bold text-gray-800 drop-shadow-md">$1</strong>');
     html = html.replace(/__(.+?)__/g, '<strong class="font-bold text-gray-800 drop-shadow-md">$1</strong>');
