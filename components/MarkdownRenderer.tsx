@@ -7,9 +7,11 @@ import 'katex/dist/katex.min.css';
 interface MarkdownRendererProps {
   content: string;
   formatNames?: boolean; // 是否格式化人名为统一宽度，默认false
+  className?: string;
+  style?: React.CSSProperties;
 }
 
-export default function MarkdownRenderer({ content, formatNames = false }: MarkdownRendererProps) {
+export default function MarkdownRenderer({ content, formatNames = false, className = '', style = {} }: MarkdownRendererProps) {
   const containerRef = useRef<HTMLDivElement>(null);
 
   const renderContent = useCallback(() => {
@@ -42,9 +44,9 @@ export default function MarkdownRenderer({ content, formatNames = false }: Markd
     });
 
     // 处理标题
-    html = html.replace(/^### (.+$)/gim, '<h3 class="text-lg font-semibold text-gray-800 drop-shadow-lg mt-4 mb-2 text-left">$1</h3>');
-    html = html.replace(/^## (.+$)/gim, '<h2 class="text-xl font-bold text-gray-800 drop-shadow-lg mt-6 mb-4 text-left">$1</h2>');
-    html = html.replace(/^# (.+$)/gim, '<h1 class="text-2xl font-bold text-gray-800 drop-shadow-lg mt-8 mb-4 text-left">$1</h1>');
+  html = html.replace(/^### (.+$)/gim, '<h3 class="text-lg font-semibold text-gray-800 drop-shadow-lg mt-4 mb-2 text-left break-all whitespace-normal">$1</h3>');
+  html = html.replace(/^## (.+$)/gim, '<h2 class="text-xl font-bold text-gray-800 drop-shadow-lg mt-6 mb-4 text-left break-all whitespace-normal">$1</h2>');
+  html = html.replace(/^# (.+$)/gim, '<h1 class="text-2xl font-bold text-gray-800 drop-shadow-lg mt-8 mb-4 text-left break-all whitespace-normal">$1</h1>');
 
     // 处理职位和人员格式（**职位**：人员名单）
     html = html.replace(/\*\*([^*]+?)\*\*：(.+?)(?=\n|$)/g, (match, title, names) => {
@@ -103,17 +105,19 @@ export default function MarkdownRenderer({ content, formatNames = false }: Markd
     }
   }, [content, renderContent]);
 
+  const defaultStyle: React.CSSProperties = {
+    fontSize: '16px',
+    lineHeight: '1.8',
+    wordBreak: 'keep-all',
+    overflowWrap: 'break-word',
+    wordSpacing: '0.1em',
+  };
+
   return (
     <div
       ref={containerRef}
-      className="max-w-none text-gray-700 text-left break-words"
-      style={{
-        fontSize: '16px',
-        lineHeight: '1.8',
-        wordBreak: 'keep-all',
-        overflowWrap: 'break-word',
-        wordSpacing: '0.1em',
-      }}
+      className={`max-w-none w-full min-w-0 text-gray-700 text-left break-words ${className}`}
+      style={{ ...defaultStyle, ...style }}
     />
   );
 }

@@ -183,7 +183,7 @@ const PerformersEditor = React.forwardRef<PerformersEditorRef, PerformersEditorP
               const nameArray = item.names.trim() ? item.names.split(/\s+/).filter(name => name.length > 0) : [];
               return (
                 <div key={index} className="flex">
-                  <span className="w-16 font-medium text-left">{item.role ? `${item.role}:` : ''}</span>
+                  <span className="w-24 min-w-[6ch] font-medium text-left">{item.role ? `${item.role}:` : ''}</span>
                   <span className="flex-1 text-left">{nameArray.join(' ')}</span>
                 </div>
               );

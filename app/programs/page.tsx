@@ -156,17 +156,19 @@ export default function ProgramsPage() {
                           {programNumber}
                         </div>
                       )}
-                      <div className="flex-1">
-                        <div
-                          className={`font-semibold text-lg drop-shadow-md ${
-                            isCurrentProgram
-                              ? 'text-yellow-900'
-                              : program.completed
-                              ? 'text-green-700'
+                      <div className="flex-1 min-w-0">
+                        <div className={`font-semibold text-lg drop-shadow-md ${
+                          isCurrentProgram
+                            ? 'text-yellow-900'
+                            : program.completed
+                            ? 'text-green-700'
                             : 'text-gray-800'
-                        }`}
-                        >
-                          <MarkdownRenderer content={program.title} />
+                        } min-w-0`}>
+                          <MarkdownRenderer
+                            content={program.title}
+                            className="break-all whitespace-normal"
+                            style={{ wordBreak: 'break-all' }}
+                          />
                         </div>
                       {/* 对于特殊情况，直接显示演职人员信息，不可折叠 */}
                       {isSimpleNameList(program.performers) ? (

@@ -138,8 +138,8 @@ export default function PerformersEditor({ performers, band_name, onUpdate, clas
         </div>
 
         <div className="space-y-3">
-          {localPerformers.map(([role, names], index) => (
-            <div key={index} className="flex gap-2 items-start">
+            {localPerformers.map(([role, names], index) => (
+              <div key={index} className="flex gap-2 items-start">
               {/* 职务名称 */}
               <div className="w-24">
                 <input
@@ -193,7 +193,7 @@ export default function PerformersEditor({ performers, band_name, onUpdate, clas
             )}
             {localPerformers.map(([role, names], index) => (
               <div key={index} className="flex">
-                <span className="w-16 font-medium text-left">{role ? `${role}:` : ''}</span>
+                <span className="w-24 min-w-[6ch] font-medium text-left">{role ? `${role}:` : ''}</span>
                 <span className="flex-1 text-left">{names.join(' ')}</span>
               </div>
             ))}

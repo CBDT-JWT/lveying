@@ -468,7 +468,7 @@ export default function AdminProgramsPage() {
                     </div>
                   )}
 
-                  <div className="flex-1">
+                  <div className="flex-1 min-w-0">
                     {isEditing ? (
                       <div className="space-y-4">
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -498,10 +498,8 @@ export default function AdminProgramsPage() {
                       </div>
                     ) : (
                       <>
-                        <div className={`text-lg font-semibold ${
-                          program.completed ? 'text-green-700' : 'text-gray-800'
-                        }`}>
-                          <MarkdownRenderer content={program.title} />
+                        <div className={`text-lg font-semibold ${program.completed ? 'text-green-700' : 'text-gray-800'} min-w-0`}>
+                            <MarkdownRenderer content={program.title} className="break-all whitespace-normal" />
                         </div>
                         <p className="text-sm text-gray-600 mt-1">
                           演职人员：{formatPerformersShort(program.performers, program.band_name)} | 顺序：{program.order}

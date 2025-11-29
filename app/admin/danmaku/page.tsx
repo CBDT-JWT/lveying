@@ -438,7 +438,7 @@ export default function AdminDanmakuPage() {
                   }`}
                 >
                   <div className="flex items-start justify-between">
-                    <div className="flex-1">
+                    <div className="flex-1 min-w-0">
                       <div className="flex items-center mb-2">
                         <span
                           className={`text-xs font-bold px-2 py-1 rounded backdrop-blur-md border ${
@@ -450,7 +450,7 @@ export default function AdminDanmakuPage() {
                           {danmaku.censor ? '已审核' : '待审核'}
                         </span>
                       </div>
-                      <p className="text-gray-800 text-lg mb-2 drop-shadow-lg">
+                      <p className="text-gray-800 text-lg mb-2 drop-shadow-lg break-all whitespace-normal">
                         {danmaku.content}
                       </p>
                       <p className="text-sm text-gray-600 drop-shadow-lg">

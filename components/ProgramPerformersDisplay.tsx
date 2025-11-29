@@ -21,6 +21,15 @@ export default function ProgramPerformersDisplay({ performers, band_name, classN
     (performers[0][0] === null || performers[0][0] === '') && 
     performers[0][1].length > 0;
 
+  // Helper: parse actor entry like "张三(角色)" or "李四（角色）" into name and role
+  const parseNameAndRole = (s: string) => {
+    const match = s.match(/^(.*?)\s*[（(]\s*(.+?)\s*[)）]\s*$/);
+    if (match) {
+      return { name: match[1].trim(), role: match[2].trim() };
+    }
+    return { name: s.trim(), role: '' };
+  };
+
   return (
     <div className={`performers-display ${className}`}>
       {isSimpleNameList ? (
@@ -53,22 +62,42 @@ export default function ProgramPerformersDisplay({ performers, band_name, classN
           {performers && performers.length > 0 && (
             <div className="performers-list space-y-1">
               {performers.map(([role, names], index) => (
-                <div key={index} className="performer-row flex">
-                  {/* 职务 - 左对齐，固定宽度，加粗 */}
-                  <div className="role w-16 flex-shrink-0 text-left font-bold text-black">
-                    {role && `${role}`}
-                  </div>
-                  
-                  {/* 人名 - 左对齐，不换行 */}
-                  <div className="names flex-1 text-left text-black">
-                    {names.map((name, nameIndex) => (
-                      <span key={nameIndex} className="name inline-block whitespace-nowrap mr-1">
-                        {name}
-                      </span>
-                    ))}
-                  </div>
-                </div>
-              ))}
+                    <div key={index} className="performer-row flex items-start">
+                      {/* 当职务不是演员时，显示左侧职务标签 */}
+                      {role !== '演员' && (
+                        <div className="role w-24 min-w-[6ch] flex-shrink-0 text-left font-bold text-black">
+                          {role && `${role}`}
+                        </div>
+                      )}
+
+                      {/* 演员特殊处理：每个演员独占一行，居中显示，左名右角色情况 */}
+                      {role === '演员' ? (
+                        <div className="flex-1 flex flex-col items-center">
+                          <div className="w-full text-center font-bold mb-2">演员</div>
+                          <div className="actors w-full max-w-xl">
+                            {names.map((entry, nameIndex) => {
+                              const { name, role: charRole } = parseNameAndRole(entry);
+                              return (
+                                <div key={nameIndex} className="actor-row flex items-center py-1 border-b last:border-b-0">
+                                  <div className="actor-role w-24 min-w-[6ch] text-left text-sm text-gray-600">{charRole}</div>
+                                  <div className="actor-name flex-1 text-right font-medium">{name}</div>
+                                </div>
+                              );
+                            })}
+                          </div>
+                        </div>
+                      ) : (
+                        /* 其他职务的标准显示 */
+                        <div className="names flex-1 text-left text-black">
+                          {names.map((name, nameIndex) => (
+                            <span key={nameIndex} className="name inline-block whitespace-nowrap mr-1">
+                              {name}
+                            </span>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  ))}
             </div>
           )}
         </>
@@ -80,6 +109,26 @@ export default function ProgramPerformersDisplay({ performers, band_name, classN
             word-break: keep-all;
             white-space: nowrap;
             margin-right: 0.25rem;
+          }
+          .performers-display .actor-row {
+            width: 100%;
+            padding: 0.25rem 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid rgba(0,0,0,0.04);
+          }
+          .performers-display .actor-row:last-child { border-bottom: none; }
+          .performers-display .actor-name {
+            white-space: normal;
+            word-break: break-word;
+            text-align: right;
+          }
+          .performers-display .actor-role {
+            white-space: normal;
+            word-break: break-word;
+            color: #4b5563;
+            text-align: left;
           }
       `}</style>
     </div>

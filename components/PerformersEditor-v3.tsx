@@ -181,7 +181,7 @@ export default function PerformersEditor({ performers, band_name, onUpdate, clas
               const nameArray = item.names.trim() ? item.names.split(/\s+/).filter(name => name.length > 0) : [];
               return (
                 <div key={index} className="flex">
-                  <span className="w-16 font-medium text-left text-gray-800 dark:text-gray-200">{item.role ? `${item.role}:` : ''}</span>
+                  <span className="w-24 min-w-[6ch] font-medium text-left text-gray-800 dark:text-gray-200">{item.role ? `${item.role}:` : ''}</span>
                   <span className="flex-1 text-left text-gray-900 dark:text-gray-100">{nameArray.join(' ')}</span>
                 </div>
               );
