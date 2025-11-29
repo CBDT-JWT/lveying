@@ -59,7 +59,7 @@ export default function MarkdownRenderer({ content, formatNames = false, classNa
       
       if (formatNames) {
         // 将人名按空格分割并格式化为固定宽度
-        const formattedNames = safeNames.trim().split(/\s+/).map(name => {
+        const formattedNames = safeNames.trim().split(/\s+/).map((name: string) => {
         const chars = [...name];
         return `<span class="inline-flex justify-between w-[3em] mx-1 mb-1">
         ${chars.map(c => `<span>${c}</span>`).join('')}
