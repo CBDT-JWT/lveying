@@ -73,7 +73,7 @@ export default function ProgramPerformersDisplay({ performers, band_name, classN
                       {/* 演员特殊处理：每个演员独占一行，居中显示，左名右角色情况 */}
                       {role === '演员' ? (
                         <div className="flex-1 flex flex-col items-center">
-                          <div className="w-full text-center font-bold mb-2">演员</div>
+                          <div className="actor-label w-full text-center font-bold mb-2">演员</div>
                           <div className="actors w-full max-w-xl">
                             {names.map((entry, nameIndex) => {
                               const { name, role: charRole } = parseNameAndRole(entry);
@@ -119,6 +119,8 @@ export default function ProgramPerformersDisplay({ performers, band_name, classN
             border-bottom: 1px solid rgba(0,0,0,0.04);
           }
           .performers-display .actor-row:last-child { border-bottom: none; }
+          .performers-display .actor-label { color: #111827; /* text-gray-900 */ }
+          .dark .performers-display .actor-label { color: #e5e7eb; /* text-gray-200 */ }
           .performers-display .actor-name {
             white-space: normal;
             word-break: break-word;
