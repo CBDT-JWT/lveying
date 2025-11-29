@@ -47,26 +47,40 @@ export default function MarkdownRenderer({ content, formatNames = false, classNa
 
     // 处理标题
   html = html.replace(/^### (.+$)/gim, '<h3 class="text-lg font-semibold text-gray-800 drop-shadow-lg mt-4 mb-2 text-left break-all whitespace-normal">$1</h3>');
-  html = html.replace(/^## (.+$)/gim, '<h2 class="text-lg font-bold text-gray-800 mt-10 mb-0 text-center break-all whitespace-normal">$1</h2>');
+  html = html.replace(/^## (.+$)/gim, '<h2 class="text-lg font-bold text-gray-800 mt-10 mb-3 text-center break-all whitespace-normal">$1</h2>');
   html = html.replace(/^# (.+$)/gim, '<h1 class="text-2xl font-bold text-gray-800 drop-shadow-lg mt-8 mb-4 text-left break-all whitespace-normal">$1</h1>');
 
     // 处理职位和人员格式（**职位**：人员名单）
-    html = html.replace(/\*\*([^*]+?)\*\* (.+?)(?=\n|$)/g, (match, title, names) => {
+    html = html.replace(/^(?!<)(?:\*\*([^*]+)\*\*\s*)?(.+?)(?=\n|$)/gm,(match, title, names) => {
+      const safeTitle = title?.trim() || '';
+      const safeNames = names.trim();
+
+    // 如果标题不存在，走“无标题”的渲染逻辑
+      
       if (formatNames) {
         // 将人名按空格分割并格式化为固定宽度
-        const formattedNames = names.trim().split(/\s+/).map((name: string) => 
-          `<span class="inline-block text-left w-[4em] mx-0.5 mb-1">${name}</span>`
-        ).join('');
-        
-        return `<div class="flex mb-3 items-start">
-          <span class="font-bold text-gray-800 drop-shadow-md min-w-[140px] text-left flex-shrink-0 mr-2 break-words">${title}</span>
-          <div class="text-gray-700 drop-shadow-md text-left flex-1 leading-relaxed flex flex-wrap items-start">${formattedNames}</div>
+        const formattedNames = safeNames.trim().split(/\s+/).map(name => {
+        const chars = [...name];
+        return `<span class="inline-flex justify-between w-[3em] mx-1 mb-1">
+        ${chars.map(c => `<span>${c}</span>`).join('')}
+          </span>`;
+}).join('');  
+        if (!safeTitle) {
+        return `<div class="flex mb-2 items-start">
+           <div class="text-gray-700 drop-shadow-md text-left w-[3em] flex-1 leading-relaxed flex flex-wrap items-start">${formattedNames}</div>
         </div>`;
+      }
+        else {
+        return `<div class="flex mb-2 items-start">
+          <span class="font-bold text-gray-800 drop-shadow-md min-w-[140px] text-left flex-shrink-0 mr-2 break-words">${safeTitle}</span>
+          <div class="text-gray-700 drop-shadow-md text-left w-[3em] flex-1 leading-relaxed flex flex-wrap items-start">${formattedNames}</div>
+        </div>`;
+        }
       } else {
         // 普通格式，不格式化人名
         return `<div class="flex mb-3 items-start">
           <span class="font-bold text-gray-800 drop-shadow-md min-w-[140px] text-left flex-shrink-0 mr-2 break-words">${title}</span>
-          <span class="text-gray-700 drop-shadow-md text-left flex-1 leading-relaxed whitespace-normal" style="word-break: keep-all; overflow-wrap: break-word;">${names}</span>
+          <span class="text-gray-700 drop-shadow-md text-left w-[3em] flex-1 leading-relaxed whitespace-normal" style="word-break: keep-all; overflow-wrap: break-word;">${names}</span>
         </div>`;
       }
     });
