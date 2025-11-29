@@ -61,7 +61,7 @@ export default function MarkdownRenderer({ content, formatNames = false, classNa
         // 将人名按空格分割并格式化为固定宽度
         const formattedNames = safeNames.trim().split(/\s+/).map((name: string) => {
         const chars = name.split('');
-        return `<span class="inline-flex justify-between w-[3em] mx-1 mb-1">
+        return `<span class="inline-flex justify-between w-[4em] mx-0.5 mb-1">
         ${chars.map(c => `<span>${c}</span>`).join('')}
           </span>`;
 }).join('');  
@@ -72,7 +72,7 @@ export default function MarkdownRenderer({ content, formatNames = false, classNa
       }
         else {
         return `<div class="flex mb-2 items-start">
-          <span class="font-bold text-gray-800 drop-shadow-md min-w-[140px] text-left flex-shrink-0 mr-2 break-words">${safeTitle}</span>
+          <span class="font-bold text-gray-800 drop-shadow-md min-w-[140px] text-left flex-shrink-0 mr-1 break-words">${safeTitle}</span>
           <div class="text-gray-700 drop-shadow-md text-left w-[3em] flex-1 leading-relaxed flex flex-wrap items-start">${formattedNames}</div>
         </div>`;
         }
