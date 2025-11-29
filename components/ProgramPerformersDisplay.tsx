@@ -123,12 +123,19 @@ export default function ProgramPerformersDisplay({ performers, band_name, classN
             white-space: normal;
             word-break: break-word;
             text-align: right;
+            color: #111827; /* text-gray-900 */
+          }
+          .dark .performers-display .actor-name {
+            color: #e5e7eb; /* text-gray-200 */
           }
           .performers-display .actor-role {
             white-space: normal;
             word-break: break-word;
-            color: #4b5563;
+            color: #4b5563; /* text-gray-700 */
             text-align: left;
+          }
+          .dark .performers-display .actor-role {
+            color: #9ca3af; /* text-gray-400 */
           }
       `}</style>
     </div>
