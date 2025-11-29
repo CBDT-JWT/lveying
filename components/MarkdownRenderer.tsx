@@ -1,8 +1,8 @@
+// client-side renderer
 'use client';
 
 import { useEffect, useRef, useCallback } from 'react';
 import katex from 'katex';
-import 'katex/dist/katex.min.css';
 import { format } from 'path';
 
 interface MarkdownRendererProps {
@@ -17,8 +17,9 @@ export default function MarkdownRenderer({ content, formatNames = false, classNa
 
   const renderContent = useCallback(() => {
     if (!containerRef.current) return;
-    // formatNames = true;
-    let html = content;
+    // 规范化输入：去除 BOM，统一换行符，修剪两端空白
+    const rawInput = (content || '').toString().replace(/^\uFEFF/, '').replace(/\r\n/g, '\n').trim();
+    let html = rawInput;
 
     // 处理块级公式 $$...$$
     html = html.replace(/\$\$([\s\S]+?)\$\$/g, (match, formula) => {
@@ -98,6 +99,19 @@ export default function MarkdownRenderer({ content, formatNames = false, classNa
     html = html.replace(/\n/g, '<br />');
 
     containerRef.current.innerHTML = html;
+
+    // 如果 URL 中带 ?dbg=1，则把原始与生成的 HTML 打印到控制台，便于在生产环境对比
+    try {
+      if (typeof window !== 'undefined' && new URLSearchParams(window.location.search).get('dbg') === '1') {
+        // 打印到控制台和在页面中可见的调试信息
+        // eslint-disable-next-line no-console
+        console.log('MarkdownRenderer DEBUG - raw input:', rawInput);
+        // eslint-disable-next-line no-console
+        console.log('MarkdownRenderer DEBUG - generated html:', html);
+      }
+    } catch (e) {
+      // ignore
+    }
   }, [content]);
 
   useEffect(() => {

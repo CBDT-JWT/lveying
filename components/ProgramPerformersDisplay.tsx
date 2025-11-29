@@ -23,15 +23,43 @@ export default function ProgramPerformersDisplay({ performers, band_name, classN
 
   // Helper: parse actor entry like "张三(角色)" or "李四（角色）" into name and role
   const parseNameAndRole = (s: string) => {
-    const match = s.match(/^(.*?)\s*[（(]\s*(.+?)\s*[)）]\s*$/);
-    if (match) {
-      return { name: match[1].trim(), role: match[2].trim() };
+    const str = (s || '').toString().trim();
+
+    // 1) 常见括号：张三(角色) 或 张三（角色）
+    let m = str.match(/^(.*?)\s*[（(]\s*(.+?)\s*[)）]\s*$/);
+    if (m) return { name: m[1].trim(), role: m[2].trim() };
+
+    // 2) 常见分隔符：姓名 - 角色, 姓名:角色, 姓名/角色
+    m = str.match(/^(.+?)\s*[:：\-–—\/]\s*(.+)$/);
+    if (m) return { name: m[1].trim(), role: m[2].trim() };
+
+    // 3) 有些数据可能是“角色: 姓名”这种反向格式，尝试根据已知的职务关键词判断并交换
+    const reverseMatch = str.match(/^(.+?)\s*[:：\-–—\/]\s*(.+)$/);
+    if (reverseMatch) {
+      const left = reverseMatch[1].trim();
+      const right = reverseMatch[2].trim();
+      const roleKeywords = ['导演', '演员', '编剧', '主持', '主唱', '魔术', '编导', '表演', '配角', '主演'];
+      if (roleKeywords.some(k => left.includes(k))) {
+        return { name: right, role: left };
+      }
+      // 否则按常规 name/role 返回
+      return { name: left, role: right };
     }
-    return { name: s.trim(), role: '' };
+
+    // 4) 回退：未识别的格式，全部作为姓名返回
+    return { name: str, role: '' };
   };
 
   return (
     <div className={`performers-display ${className}`}>
+      {/* Debug helper: 在 URL 中添加 ?dbg=1 可显示原始数据与解析结果（只在客户端） */}
+      {/* 例如: https://your-site/programs?dbg=1 */}
+      {typeof window !== 'undefined' && new URLSearchParams(window.location.search).get('dbg') === '1' && (
+        <div className="debug-panel mb-2 p-2 bg-yellow-50 rounded border border-yellow-200 text-xs text-yellow-800">
+          <div className="font-medium mb-1">DEBUG: 原始 performers 数据</div>
+          <pre className="whitespace-pre-wrap">{JSON.stringify(performers, null, 2)}</pre>
+        </div>
+      )}
       {isSimpleNameList ? (
         /* 特殊格式：组名（加粗）换行 名字列表 */
         <div className="simple-format">
