@@ -89,43 +89,26 @@ export default function ProgramPerformersDisplay({ performers, band_name, classN
           {/* 演职人员列表 */}
           {performers && performers.length > 0 && (
             <div className="performers-list space-y-1">
-              {performers.map(([role, names], index) => (
-                    <div key={index} className="performer-row flex items-start">
-                      {/* 当职务不是演员时，显示左侧职务标签 */}
-                      {role !== '演员' && (
-                        <div className="role w-24 min-w-[6ch] flex-shrink-0 text-left font-bold text-black">
-                          {role && `${role}`}
-                        </div>
-                      )}
-
-                      {/* 演员特殊处理：每个演员独占一行，居中显示，左名右角色情况 */}
-                      {role === '演员' ? (
-                        <div className="flex-1 flex flex-col items-center">
-                          <div className="actor-label w-full text-center font-bold mb-2">演员</div>
-                          <div className="actors w-full max-w-xl">
-                            {names.map((entry, nameIndex) => {
-                              const { name, role: charRole } = parseNameAndRole(entry);
-                              return (
-                                <div key={nameIndex} className="actor-row flex items-center py-1 border-b last:border-b-0">
-                                  <div className="actor-role w-24 min-w-[6ch] text-left text-sm text-gray-600">{charRole}</div>
-                                  <div className="actor-name flex-1 text-right font-medium">{name}</div>
-                                </div>
-                              );
-                            })}
+              {performers.map(([role, names], index) => {
+                const isActor = role === '演员';
+                return (
+                  <div key={index} className="performer-row flex flex-col items-center">
+                    {isActor && role && <div className="actor-label w-full text-center font-bold mb-2">{role}</div>}
+                    <div className="actors w-full max-w-xl">
+                      {names.map((entry, nameIndex) => {
+                        const { name, role: charRole } = isActor ? parseNameAndRole(entry) : { name: entry, role: role || '' };
+                        const leftLabel = isActor ? charRole : (role || '');
+                        return (
+                          <div key={nameIndex} className="actor-row flex items-center py-1 border-b last:border-b-0">
+                            <div className="actor-role w-24 min-w-[6ch] text-left text-sm text-gray-600">{leftLabel}</div>
+                            <div className="actor-name flex-1 text-right font-medium">{name}</div>
                           </div>
-                        </div>
-                      ) : (
-                        /* 其他职务的标准显示 */
-                        <div className="names flex-1 text-left text-black">
-                          {names.map((name, nameIndex) => (
-                            <span key={nameIndex} className="name inline-block whitespace-nowrap mr-1">
-                              {name}
-                            </span>
-                          ))}
-                        </div>
-                      )}
+                        );
+                      })}
                     </div>
-                  ))}
+                  </div>
+                );
+              })}
             </div>
           )}
         </>

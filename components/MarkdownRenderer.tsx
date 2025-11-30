@@ -78,7 +78,7 @@ export default function MarkdownRenderer({ content, formatNames = false, classNa
 }).join(' ');
         if (!safeTitle) {
         return `<div class="flex mb-2 min-h-[1.5em] items-start justify-center">
-           <div class="text-gray-700 drop-shadow-md text-center w-[3em] flex-1 leading-relaxed flex flex-wrap items-start">${formattedNames}</div>
+           <div class="text-gray-700 drop-shadow-md text-center justify-center leading-relaxed flex flex-wrap items-start">${formattedNames}</div>
         </div>`;
       }
         else {
