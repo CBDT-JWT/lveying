@@ -107,6 +107,22 @@ export default function ProgramPerformersDisplay({ performers, band_name, classN
                       return acc;
                     }, [])
                   : [];
+                const actorGroups = isActor
+                  ? (() => {
+                      const map = new Map<string, string[]>();
+                      names.forEach((entry) => {
+                        const { name, role: charRole } = parseNameAndRole(entry);
+                        const key = charRole || '';
+                        const parts = name.split('、').map((p) => p.trim()).filter(Boolean);
+                        if (!map.has(key)) map.set(key, []);
+                        map.get(key)!.push(...parts);
+                      });
+                      return Array.from(map.entries()).map(([charRole, grouped]) => ({
+                        charRole,
+                        names: grouped,
+                      }));
+                    })()
+                  : [];
                 return (
                   <div
                     key={index}
@@ -115,14 +131,26 @@ export default function ProgramPerformersDisplay({ performers, band_name, classN
                     {isActor && role && <div className="actor-label w-full text-center font-bold mb-2">{role}</div>}
                     <div className="actors w-full max-w-xl">
                       {isActor ? (
-                        names.map((entry, nameIndex) => {
-                          const { name, role: charRole } = parseNameAndRole(entry);
-                          return (
-                            <div key={nameIndex} className="actor-row flex items-center py-1">
-                              <div className="actor-role w-24 min-w-[6ch] text-left text-sm text-gray-600">{charRole}</div>
-                              <div className="actor-name flex-1 text-right font-medium">{formatTwoCharName(name)}</div>
+                        actorGroups.flatMap(({ charRole, names: actorNames }, groupIndex) => {
+                          const rows = actorNames.reduce<string[][]>((acc, curr, idx) => {
+                            if (idx % 3 === 0) acc.push([]);
+                            acc[acc.length - 1].push(curr);
+                            return acc;
+                          }, []);
+                          return rows.map((row, rowIdx) => (
+                            <div key={`${groupIndex}-${rowIdx}`} className="actor-row flex items-center py-1">
+                              <div className="actor-role w-24 min-w-[6ch] text-left text-sm text-gray-600">
+                                {rowIdx === 0 ? charRole : ''}
+                              </div>
+                              <div className="actor-names flex flex-1 flex-nowrap justify-end gap-x-4">
+                                {row.map((name, nameIndex) => (
+                                  <div key={nameIndex} className="actor-name actor-name-block text-right font-medium">
+                                    {formatTwoCharName(name)}
+                                  </div>
+                                ))}
+                              </div>
                             </div>
-                          );
+                          ));
                         })
                       ) : (
                         groupedNames.map((row, rowIndex) => (
@@ -185,6 +213,14 @@ export default function ProgramPerformersDisplay({ performers, band_name, classN
           }
           .dark .performers-display .actor-role {
             color: #9ca3af; /* text-gray-400 */
+          }
+          .performers-display .actor-names {
+            justify-content: flex-end;
+          }
+          .performers-display .actor-name-block {
+            flex: 0 0 4em;
+            width: 4em;
+            min-width: 4em;
           }
           .performers-display .names-row {
             justify-content: flex-end;
