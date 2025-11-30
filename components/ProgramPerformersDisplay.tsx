@@ -100,13 +100,6 @@ export default function ProgramPerformersDisplay({ performers, band_name, classN
             <div className="performers-list space-y-1">
               {performers.map(([role, names], index) => {
                 const isActor = role === '演员';
-                const groupedNames = !isActor
-                  ? names.reduce<string[][]>((acc, curr, idx) => {
-                      if (idx % 3 === 0) acc.push([]);
-                      acc[acc.length - 1].push(curr);
-                      return acc;
-                    }, [])
-                  : [];
                 const actorGroups = isActor
                   ? (() => {
                       const map = new Map<string, string[]>();
@@ -132,44 +125,35 @@ export default function ProgramPerformersDisplay({ performers, band_name, classN
                     <div className="actors w-full max-w-xl">
                       {isActor ? (
                         actorGroups.flatMap(({ charRole, names: actorNames }, groupIndex) => {
-                          const rows = actorNames.reduce<string[][]>((acc, curr, idx) => {
-                            if (idx % 3 === 0) acc.push([]);
-                            acc[acc.length - 1].push(curr);
-                            return acc;
-                          }, []);
-                          return rows.map((row, rowIdx) => (
-                            <div key={`${groupIndex}-${rowIdx}`} className="actor-row flex items-center py-1">
-                              <div className="actor-role w-24 min-w-[6ch] text-left text-sm text-gray-600">
-                                {rowIdx === 0 ? charRole : ''}
-                              </div>
-                              <div className="actor-names flex flex-1 flex-nowrap justify-end gap-x-4">
-                                {row.map((name, nameIndex) => (
+                          return (
+                            <div key={groupIndex} className="actor-row flex items-center py-1">
+                              <div className="actor-role w-24 min-w-[6ch] text-left text-sm text-gray-600">{charRole}</div>
+                              <div className="actor-names flex flex-1 flex-wrap justify-end gap-x-4 gap-y-2">
+                                {actorNames.map((name, nameIndex) => (
                                   <div key={nameIndex} className="actor-name actor-name-block text-right font-medium">
                                     {formatTwoCharName(name)}
                                   </div>
                                 ))}
                               </div>
                             </div>
-                          ));
+                          );
                         })
                       ) : (
-                        groupedNames.map((row, rowIndex) => (
-                          <div key={rowIndex} className="actor-row flex items-center py-1">
-                            <div className="actor-role w-24 min-w-[6ch] text-left text-sm text-gray-600">
-                              {rowIndex === 0 ? role : ''}
-                            </div>
-                            <div className="names-row flex flex-1 flex-wrap gap-x-4 gap-y-2">
-                              {row.map((name, nameIndex) => (
-                                <div
-                                  key={nameIndex}
-                                  className="non-actor-name text-right font-medium"
-                                >
-                                  {formatTwoCharName(name)}
-                                </div>
-                              ))}
-                            </div>
+                        <div className="actor-row flex items-center py-1">
+                          <div className="actor-role w-24 min-w-[6ch] text-left text-sm text-gray-600">
+                            {role || ''}
                           </div>
-                        ))
+                          <div className="names-row flex flex-1 flex-wrap gap-x-4 gap-y-2">
+                            {names.map((name, nameIndex) => (
+                              <div
+                                key={nameIndex}
+                                className="non-actor-name text-right font-medium"
+                              >
+                                {formatTwoCharName(name)}
+                              </div>
+                            ))}
+                          </div>
+                        </div>
                       )}
                     </div>
                   </div>
