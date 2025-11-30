@@ -50,6 +50,15 @@ export default function ProgramPerformersDisplay({ performers, band_name, classN
     return { name: str, role: '' };
   };
 
+  const formatTwoCharName = (s: string) => {
+    const trimmed = (s || '').toString().trim();
+    const chars = Array.from(trimmed);
+    if (chars.length === 2 && !trimmed.includes(' ') && !trimmed.includes('　')) {
+      return `${chars[0]}　${chars[1]}`;
+    }
+    return trimmed;
+  };
+
   return (
     <div className={`performers-display ${className}`}>
       {/* Debug helper: 在 URL 中添加 ?dbg=1 可显示原始数据与解析结果（只在客户端） */}
@@ -91,20 +100,49 @@ export default function ProgramPerformersDisplay({ performers, band_name, classN
             <div className="performers-list space-y-1">
               {performers.map(([role, names], index) => {
                 const isActor = role === '演员';
+                const groupedNames = !isActor
+                  ? names.reduce<string[][]>((acc, curr, idx) => {
+                      if (idx % 3 === 0) acc.push([]);
+                      acc[acc.length - 1].push(curr);
+                      return acc;
+                    }, [])
+                  : [];
                 return (
-                  <div key={index} className="performer-row flex flex-col items-center">
+                  <div
+                    key={index}
+                    className={`performer-section flex flex-col items-center ${index > 0 ? 'section-divider pt-3 mt-3' : ''}`}
+                  >
                     {isActor && role && <div className="actor-label w-full text-center font-bold mb-2">{role}</div>}
                     <div className="actors w-full max-w-xl">
-                      {names.map((entry, nameIndex) => {
-                        const { name, role: charRole } = isActor ? parseNameAndRole(entry) : { name: entry, role: role || '' };
-                        const leftLabel = isActor ? charRole : (role || '');
-                        return (
-                          <div key={nameIndex} className="actor-row flex items-center py-1 border-b last:border-b-0">
-                            <div className="actor-role w-24 min-w-[6ch] text-left text-sm text-gray-600">{leftLabel}</div>
-                            <div className="actor-name flex-1 text-right font-medium">{name}</div>
+                      {isActor ? (
+                        names.map((entry, nameIndex) => {
+                          const { name, role: charRole } = parseNameAndRole(entry);
+                          return (
+                            <div key={nameIndex} className="actor-row flex items-center py-1">
+                              <div className="actor-role w-24 min-w-[6ch] text-left text-sm text-gray-600">{charRole}</div>
+                              <div className="actor-name flex-1 text-right font-medium">{formatTwoCharName(name)}</div>
+                            </div>
+                          );
+                        })
+                      ) : (
+                        groupedNames.map((row, rowIndex) => (
+                          <div key={rowIndex} className="actor-row flex items-center py-1">
+                            <div className="actor-role w-24 min-w-[6ch] text-left text-sm text-gray-600">
+                              {rowIndex === 0 ? role : ''}
+                            </div>
+                            <div className="names-row flex flex-1 flex-wrap gap-x-4 gap-y-2">
+                              {row.map((name, nameIndex) => (
+                                <div
+                                  key={nameIndex}
+                                  className="non-actor-name text-right font-medium"
+                                >
+                                  {formatTwoCharName(name)}
+                                </div>
+                              ))}
+                            </div>
                           </div>
-                        );
-                      })}
+                        ))
+                      )}
                     </div>
                   </div>
                 );
@@ -127,19 +165,17 @@ export default function ProgramPerformersDisplay({ performers, band_name, classN
             display: flex;
             justify-content: space-between;
             align-items: center;
-            border-bottom: 1px solid rgba(0,0,0,0.04);
           }
-          .performers-display .actor-row:last-child { border-bottom: none; }
+          .performers-display .performer-section + .performer-section {
+            border-top: 1px solid rgba(0,0,0,0.08);
+          }
           .performers-display .actor-label { color: #111827; /* text-gray-900 */ }
           .dark .performers-display .actor-label { color: #e5e7eb; /* text-gray-200 */ }
           .performers-display .actor-name {
             white-space: normal;
             word-break: break-word;
             text-align: right;
-            color: #111827; /* text-gray-900 */
-          }
-          .dark .performers-display .actor-name {
-            color: #e5e7eb; /* text-gray-200 */
+            color: #000;
           }
           .performers-display .actor-role {
             white-space: normal;
@@ -149,6 +185,16 @@ export default function ProgramPerformersDisplay({ performers, band_name, classN
           }
           .dark .performers-display .actor-role {
             color: #9ca3af; /* text-gray-400 */
+          }
+          .performers-display .names-row {
+            justify-content: flex-end;
+          }
+          .performers-display .non-actor-name {
+            color: #000;
+            text-align: right;
+            flex: 0 0 4em;
+            width: 4em;
+            min-width: 4em;
           }
       `}</style>
     </div>
