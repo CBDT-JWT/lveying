@@ -181,8 +181,8 @@ export default function ProgramsPage() {
                         </div>
                       ) : (
                         <>
-                          {/* 标准情况：简短显示组合名或主要演职人员 */}
-                          {((program.band_name && program.band_name.trim().length > 0) || hasPerformerContent(program)) && (
+                          {/* 标准情况：简短显示组合名或主要演职人员（折叠时显示） */}
+                          {expandedId !== program.id && ((program.band_name && program.band_name.trim().length > 0) || hasPerformerContent(program)) && (
                             <p className="text-sm text-gray-800 mt-1 drop-shadow-md">
                               {program.band_name || (getCleanNames(program).length > 0 ? 
                                 getCleanNames(program).slice(0, 2).join(' ') + 
@@ -193,6 +193,12 @@ export default function ProgramsPage() {
                           {/* 展开的详情内容 */}
                           {expandedId === program.id && hasPerformerContent(program) && (
                             <div className="mt-3">
+                              {/* 居中显示组合名称 */}
+                              {program.band_name && program.band_name.trim().length > 0 && (
+                                <div className="text-center mb-3">
+                                  <span className="font-semibold text-black text-base drop-shadow-md">{program.band_name}</span>
+                                </div>
+                              )}
                               <ProgramPerformersDisplay 
                                 performers={program.performers} 
                                 band_name={program.band_name}
