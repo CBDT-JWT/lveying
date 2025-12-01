@@ -58,7 +58,7 @@ export default function DisplayPage() {
         {displayDanmakus.map((danmaku, index) => (
           <div
             key={danmaku.id}
-            className="text-4xl font-medium animate-slideIn"
+            className={`text-4xl font-medium animate-slideIn ${index > 0 ? 'border-t border-gray-400 pt-1' : ''}`}
             style={{
               animationDelay: `${index * 0.05}s`,
               lineHeight: '1.5',
