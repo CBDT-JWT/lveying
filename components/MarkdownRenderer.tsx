@@ -66,11 +66,11 @@ export default function MarkdownRenderer({ content, formatNames = false, classNa
     chars.push('&ensp;'); // 补一个全角占位
     chars.push(tmpchar!);
   }
-  if (chars.length == 4){
-    return `<span class="inline-flex w-[4em] mx-1.5 mb-0 leading-none text-center text-xs items-start">
-    ${chars.map(c => `<span class="inline-block w-[1em]">${c}</span>`).join('')}
-  </span>`;
-  }
+  // if (chars.length == 4){
+  //   return `<span class="inline-flex w-[4em] mx-1.5 mb-0 leading-none text-center text-xs items-start">
+  //   ${chars.map(c => `<span class="inline-block w-[1em]">${c}</span>`).join('')}
+  // </span>`;
+  // }
 
   return `<span class="inline-flex w-[3em] mx-1.5 mb-0 text-center items-start">
     ${chars.map(c => `<span class="inline-block w-[1em]">${c}</span>`).join('')}
