@@ -129,11 +129,16 @@ export default function ProgramPerformersDisplay({ performers, band_name, classN
                             <div key={groupIndex} className={`actor-row flex items-center py-0 ${groupIndex > 0 ? 'mt-2' : ''}`}>
                               <div className="actor-role w-24 min-w-[6ch] text-left text-sm text-gray-600">{charRole}</div>
                               <div className="actor-names flex flex-1 flex-wrap justify-end gap-x-4 gap-y-0.5">
-                                {actorNames.map((name, nameIndex) => (
-                                  <div key={nameIndex} className="actor-name actor-name-block text-right font-medium">
-                                    {formatTwoCharName(name)}
-                                  </div>
-                                ))}
+                                {actorNames.map((name, nameIndex) => {
+                                  const formattedName = formatTwoCharName(name);
+                                  const nameLength = Array.from(formattedName.replace(/\s+/g, '')).length;
+                                  const widthClass = nameLength >= 4 ? 'w-[4em] min-w-[4em]' : 'w-[3em] min-w-[3em]';
+                                  return (
+                                    <div key={nameIndex} className={`actor-name text-right font-medium ${widthClass}`}>
+                                      {formattedName}
+                                    </div>
+                                  );
+                                })}
                               </div>
                             </div>
                           );
@@ -144,14 +149,19 @@ export default function ProgramPerformersDisplay({ performers, band_name, classN
                             {role || ''}
                           </div>
                           <div className="names-row flex flex-1 flex-wrap gap-x-4 gap-y-0.5">
-                            {names.map((name, nameIndex) => (
-                              <div
-                                key={nameIndex}
-                                className="non-actor-name text-right font-medium"
-                              >
-                                {formatTwoCharName(name)}
-                              </div>
-                            ))}
+                            {names.map((name, nameIndex) => {
+                              const formattedName = formatTwoCharName(name);
+                              const nameLength = Array.from(formattedName.replace(/\s+/g, '')).length;
+                              const widthClass = nameLength >= 4 ? 'w-[4em] min-w-[4em]' : 'w-[3em] min-w-[3em]';
+                              return (
+                                <div
+                                  key={nameIndex}
+                                  className={`non-actor-name text-right font-medium ${widthClass}`}
+                                >
+                                  {formattedName}
+                                </div>
+                              );
+                            })}
                           </div>
                         </div>
                       )}
@@ -202,10 +212,8 @@ export default function ProgramPerformersDisplay({ performers, band_name, classN
           .performers-display .actor-names {
             justify-content: flex-end;
           }
-          .performers-display .actor-name-block {
-            flex: 0 0 3em;
-            width: 3em;
-            min-width: 3em;
+          .performers-display .actor-name {
+            color: #000;
           }
           .performers-display .names-row {
             justify-content: flex-end;
@@ -213,9 +221,6 @@ export default function ProgramPerformersDisplay({ performers, band_name, classN
           .performers-display .non-actor-name {
             color: #000;
             text-align: right;
-            flex: 0 0 3em;
-            width: 3em;
-            min-width: 3em;
           }
       `}</style>
     </div>
