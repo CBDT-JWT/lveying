@@ -3,7 +3,7 @@
 import { useEffect, useState, useRef } from 'react';
 import { Danmaku } from '@/types';
 
-const MAX_LINES = 15; // 最多显示15行
+const MAX_LINES = 20; // 最多显示15行
 
 export default function DisplayPage() {
   const [danmakus, setDanmakus] = useState<Danmaku[]>([]);
@@ -86,7 +86,7 @@ export default function DisplayPage() {
       <style jsx>{`
         @keyframes slideIn {
           from {
-            transform: translateX(-100%);
+            transform: translateX(calc(-100% - 2rem));
             opacity: 0;
           }
           to {
@@ -98,7 +98,7 @@ export default function DisplayPage() {
         .animate-slideIn {
           animation: slideIn 0.5s ease-out forwards;
           opacity: 0;
-          transform: translateX(-100%);
+          transform: translateX(calc(-100% - 2rem));
         }
       `}</style>
     </div>
