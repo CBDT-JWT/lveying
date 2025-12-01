@@ -12,6 +12,11 @@ interface FlyingNumber {
   index: number; // 在数字串中的索引
 }
 
+interface PendingLotteryResult {
+  title: string;
+  numbers: number[];
+}
+
 export default function LotteryDisplayPage() {
   const [config, setConfig] = useState<LotteryConfig>({
     minNumber: 1,
@@ -29,10 +34,12 @@ export default function LotteryDisplayPage() {
   const [spaceDisabled, setSpaceDisabled] = useState(false); // 空格键禁用状态
   const [enterDisabled, setEnterDisabled] = useState(true); // Enter键禁用状态
   const [numberKeysLocked, setNumberKeysLocked] = useState(false); // 数字键锁定状态（按下数字到按下enter期间）
+  const [pendingResults, setPendingResults] = useState<PendingLotteryResult[]>([]); // 待发送的抽奖结果队列
   const animationFrameRef = useRef<number>();
   const lastTimeRef = useRef<number>(0);
   const shutterAudioRef = useRef<HTMLAudioElement | null>(null); // 快门音效引用
   const spaceDisableTimeoutRef = useRef<NodeJS.Timeout | null>(null); // 空格键禁用定时器
+  const retryIntervalRef = useRef<NodeJS.Timeout | null>(null); // 重试定时器
   const router = useRouter();
 
   // 根据数量计算需要的行数
@@ -133,6 +140,20 @@ export default function LotteryDisplayPage() {
     fetchConfig();
     // 从datastore加载已使用的号码
     fetchUsedNumbers();
+    
+    // 从 localStorage 恢复待发送队列
+    try {
+      const savedQueue = localStorage.getItem('pendingLotteryResults');
+      if (savedQueue) {
+        const parsed = JSON.parse(savedQueue);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          setPendingResults(parsed);
+          console.log(`从本地恢复了 ${parsed.length} 条待发送的抽奖结果`);
+        }
+      }
+    } catch (error) {
+      console.error('恢复待发送队列失败:', error);
+    }
     
     // 初始化音频
     if (typeof window !== 'undefined') {
@@ -529,11 +550,89 @@ export default function LotteryDisplayPage() {
 
       if (response.ok) {
         console.log('抽奖结果已保存');
+      } else {
+        throw new Error(`HTTP ${response.status}`);
       }
     } catch (error) {
-      console.error('提交抽奖结果失败:', error);
+      console.error('提交抽奖结果失败，加入队列:', error);
+      // 失败时加入待发送队列
+      setPendingResults(prev => [...prev, { title: lotteryTitle, numbers }]);
     }
   };
+
+  // 重试发送待发送的抽奖结果
+  const retryPendingResults = async () => {
+    if (pendingResults.length === 0) return;
+
+    const token = localStorage.getItem('adminToken');
+    if (!token) return;
+
+    console.log(`尝试发送队列中的 ${pendingResults.length} 条抽奖结果`);
+
+    // 取出第一条尝试发送
+    const [first, ...rest] = pendingResults;
+    
+    try {
+      const response = await fetch('/api/lottery/result', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ title: first.title, numbers: first.numbers }),
+      });
+
+      if (response.ok) {
+        console.log('队列中的抽奖结果发送成功');
+        // 成功后移除该项
+        setPendingResults(rest);
+      } else {
+        throw new Error(`HTTP ${response.status}`);
+      }
+    } catch (error) {
+      console.error('重试发送失败，保留在队列中:', error);
+      // 失败则保持队列不变（会在下次重试）
+    }
+  };
+
+  // 监听待发送队列，如果非空则启动定时重试
+  useEffect(() => {
+    // 保存队列到 localStorage
+    try {
+      if (pendingResults.length > 0) {
+        localStorage.setItem('pendingLotteryResults', JSON.stringify(pendingResults));
+      } else {
+        localStorage.removeItem('pendingLotteryResults');
+      }
+    } catch (error) {
+      console.error('保存待发送队列到本地失败:', error);
+    }
+
+    if (pendingResults.length > 0) {
+      // 队列非空，启动定时器（如果尚未启动）
+      if (!retryIntervalRef.current) {
+        console.log('启动重试定时器');
+        retryIntervalRef.current = setInterval(() => {
+          retryPendingResults();
+        }, 3000);
+      }
+    } else {
+      // 队列为空，清除定时器
+      if (retryIntervalRef.current) {
+        console.log('队列已清空，停止重试定时器');
+        clearInterval(retryIntervalRef.current);
+        retryIntervalRef.current = null;
+      }
+    }
+
+    // 清理函数
+    return () => {
+      if (retryIntervalRef.current) {
+        clearInterval(retryIntervalRef.current);
+        retryIntervalRef.current = null;
+      }
+    };
+  }, [pendingResults]);
 
   // 监听拍立得动画结束，解除空格禁用（必须在组件顶层）
   useEffect(() => {
