@@ -126,9 +126,9 @@ export default function ProgramPerformersDisplay({ performers, band_name, classN
                       {isActor ? (
                         actorGroups.flatMap(({ charRole, names: actorNames }, groupIndex) => {
                           return (
-                            <div key={groupIndex} className="actor-row flex items-center py-0.5">
+                            <div key={groupIndex} className="actor-row flex items-center py-0">
                               <div className="actor-role w-24 min-w-[6ch] text-left text-sm text-gray-600">{charRole}</div>
-                              <div className="actor-names flex flex-1 flex-wrap justify-end gap-x-4 gap-y-1">
+                              <div className="actor-names flex flex-1 flex-wrap justify-end gap-x-4 gap-y-0.5">
                                 {actorNames.map((name, nameIndex) => (
                                   <div key={nameIndex} className="actor-name actor-name-block text-right font-medium">
                                     {formatTwoCharName(name)}
@@ -139,11 +139,11 @@ export default function ProgramPerformersDisplay({ performers, band_name, classN
                           );
                         })
                       ) : (
-                        <div className="actor-row flex items-center py-0.5">
+                        <div className="actor-row flex items-center py-0">
                           <div className="actor-role w-24 min-w-[6ch] text-left text-sm text-gray-600">
                             {role || ''}
                           </div>
-                          <div className="names-row flex flex-1 flex-wrap gap-x-4 gap-y-1">
+                          <div className="names-row flex flex-1 flex-wrap gap-x-4 gap-y-0.5">
                             {names.map((name, nameIndex) => (
                               <div
                                 key={nameIndex}
@@ -173,10 +173,11 @@ export default function ProgramPerformersDisplay({ performers, band_name, classN
           }
           .performers-display .actor-row {
             width: 100%;
-            padding: 0.125rem 0;
+            padding: 0;
             display: flex;
             justify-content: space-between;
             align-items: center;
+            line-height: 1.4;
           }
           .performers-display .performer-section + .performer-section {
             border-top: 1px solid rgba(0,0,0,0.08);
