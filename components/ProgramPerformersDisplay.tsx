@@ -126,7 +126,7 @@ export default function ProgramPerformersDisplay({ performers, band_name, classN
                       {isActor ? (
                         actorGroups.flatMap(({ charRole, names: actorNames }, groupIndex) => {
                           return (
-                            <div key={groupIndex} className="actor-row flex items-center py-0">
+                            <div key={groupIndex} className={`actor-row flex items-center py-0 ${groupIndex > 0 ? 'mt-2' : ''}`}>
                               <div className="actor-role w-24 min-w-[6ch] text-left text-sm text-gray-600">{charRole}</div>
                               <div className="actor-names flex flex-1 flex-wrap justify-end gap-x-4 gap-y-0.5">
                                 {actorNames.map((name, nameIndex) => (
