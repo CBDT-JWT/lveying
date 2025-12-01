@@ -387,7 +387,17 @@ export default function LotteryDisplayPage() {
   const handleRefresh = async () => {
     // 触发拍立得飞出动画
     if (finalNumbers.length > 0) {
-      // 立即刷新配置和已使用的号码，不要等动画完成
+     
+      
+      setFlyingOut(true);
+      // 等待动画完成后清空内容
+      setTimeout(() => {
+        setFinalNumbers([]);
+        setFlyingNumbers([]);
+        setBackgroundImage('');
+        setFlyingOut(false);
+      }, 800); // 动画持续时间
+       // 立即刷新配置和已使用的号码，不要等动画完成
       await fetchConfig();
       await fetchUsedNumbers();
       console.log('配置已刷新（第1次）');
@@ -398,15 +408,6 @@ export default function LotteryDisplayPage() {
         await fetchUsedNumbers();
         console.log('配置已刷新（第2次）');
       }, 500);
-      
-      setFlyingOut(true);
-      // 等待动画完成后清空内容
-      setTimeout(() => {
-        setFinalNumbers([]);
-        setFlyingNumbers([]);
-        setBackgroundImage('');
-        setFlyingOut(false);
-      }, 800); // 动画持续时间
     } else {
       // 如果没有内容，直接刷新
       await fetchConfig();
