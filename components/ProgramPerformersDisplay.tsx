@@ -121,14 +121,14 @@ export default function ProgramPerformersDisplay({ performers, band_name, classN
                     key={index}
                     className={`performer-section flex flex-col items-center ${index > 0 ? 'section-divider pt-3 mt-3' : ''}`}
                   >
-                    {isActor && role && <div className="actor-label w-full text-center font-bold mb-2">{role}</div>}
+                    {isActor && role && <div className="actor-label w-full text-center font-bold mb-1">{role}</div>}
                     <div className="actors w-full max-w-xl">
                       {isActor ? (
                         actorGroups.flatMap(({ charRole, names: actorNames }, groupIndex) => {
                           return (
-                            <div key={groupIndex} className="actor-row flex items-center py-1">
+                            <div key={groupIndex} className="actor-row flex items-center py-0.5">
                               <div className="actor-role w-24 min-w-[6ch] text-left text-sm text-gray-600">{charRole}</div>
-                              <div className="actor-names flex flex-1 flex-wrap justify-end gap-x-4 gap-y-2">
+                              <div className="actor-names flex flex-1 flex-wrap justify-end gap-x-4 gap-y-1">
                                 {actorNames.map((name, nameIndex) => (
                                   <div key={nameIndex} className="actor-name actor-name-block text-right font-medium">
                                     {formatTwoCharName(name)}
@@ -139,11 +139,11 @@ export default function ProgramPerformersDisplay({ performers, band_name, classN
                           );
                         })
                       ) : (
-                        <div className="actor-row flex items-center py-1">
+                        <div className="actor-row flex items-center py-0.5">
                           <div className="actor-role w-24 min-w-[6ch] text-left text-sm text-gray-600">
                             {role || ''}
                           </div>
-                          <div className="names-row flex flex-1 flex-wrap gap-x-4 gap-y-2">
+                          <div className="names-row flex flex-1 flex-wrap gap-x-4 gap-y-1">
                             {names.map((name, nameIndex) => (
                               <div
                                 key={nameIndex}
@@ -173,7 +173,7 @@ export default function ProgramPerformersDisplay({ performers, band_name, classN
           }
           .performers-display .actor-row {
             width: 100%;
-            padding: 0.25rem 0;
+            padding: 0.125rem 0;
             display: flex;
             justify-content: space-between;
             align-items: center;
