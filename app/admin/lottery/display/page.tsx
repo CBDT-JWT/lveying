@@ -28,6 +28,7 @@ export default function LotteryDisplayPage() {
   const [flyingOut, setFlyingOut] = useState(false); // 拍立得飞出动画
   const [spaceDisabled, setSpaceDisabled] = useState(false); // 空格键禁用状态
   const [enterDisabled, setEnterDisabled] = useState(true); // Enter键禁用状态
+  const [numberKeysLocked, setNumberKeysLocked] = useState(false); // 数字键锁定状态（按下数字到按下enter期间）
   const animationFrameRef = useRef<number>();
   const lastTimeRef = useRef<number>(0);
   const shutterAudioRef = useRef<HTMLAudioElement | null>(null); // 快门音效引用
@@ -148,9 +149,44 @@ export default function LotteryDisplayPage() {
     }
   }, [router]);
 
-  // 键盘事件监听 - 空格键和Enter键控制
+  // 键盘事件监听 - 空格键、Enter键和数字键控制
   useEffect(() => {
     const handleKeyPress = (e: KeyboardEvent) => {
+      // 数字键快捷方式：1=一等奖(3个), 2=二等奖(10个), 3=三等奖(15个), 0=特等奖(1个)
+      if (['Digit1', 'Digit2', 'Digit3', 'Digit0'].includes(e.code) && !rolling && !numberKeysLocked) {
+        e.preventDefault();
+        
+        // 根据按键设置临时配置
+        let tempConfig: LotteryConfig;
+        let tempTitle: string;
+        
+        if (e.code === 'Digit1') {
+          tempConfig = { ...config, count: 3 };
+          tempTitle = '一等奖';
+        } else if (e.code === 'Digit2') {
+          tempConfig = { ...config, count: 10 };
+          tempTitle = '二等奖';
+        } else if (e.code === 'Digit3') {
+          tempConfig = { ...config, count: 15 };
+          tempTitle = '三等奖';
+        } else { // Digit0
+          tempConfig = { ...config, count: 1 };
+          tempTitle = '特等奖';
+        }
+        
+        // 临时更新配置和标题（不保存到云端）
+        setConfig(tempConfig);
+        setLotteryTitle(tempTitle);
+        
+        // 锁定数字键
+        setNumberKeysLocked(true);
+        
+        // 开始抽奖（相当于按下空格）
+        startLottery();
+        
+        return;
+      }
+      
       if (e.code === 'Space') {
         e.preventDefault();
         if (spaceDisabled) return;
@@ -172,6 +208,11 @@ export default function LotteryDisplayPage() {
           setEnterDisabled(true);
           setSpaceDisabled(true);
           handleRefresh();
+          
+          // 延迟1.5秒后解锁数字键
+          setTimeout(() => {
+            setNumberKeysLocked(false);
+          }, 1500);
         }
       }
     };
@@ -179,7 +220,7 @@ export default function LotteryDisplayPage() {
     return () => {
       window.removeEventListener('keydown', handleKeyPress);
     };
-  }, [rolling, finalNumbers, spaceDisabled, enterDisabled]);
+  }, [rolling, finalNumbers, spaceDisabled, enterDisabled, numberKeysLocked, config]);
 
   useEffect(() => {
     if (rolling) {
