@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { Danmaku } from '@/types';
 
 const MAX_LINES = 15; // 最多显示15行
@@ -8,6 +8,7 @@ const MAX_LINES = 15; // 最多显示15行
 export default function DisplayPage() {
   const [danmakus, setDanmakus] = useState<Danmaku[]>([]);
   const [displayDanmakus, setDisplayDanmakus] = useState<Danmaku[]>([]);
+  const bottomRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     fetchDanmakus();
@@ -15,6 +16,13 @@ export default function DisplayPage() {
     const interval = setInterval(fetchDanmakus, 2000);
     return () => clearInterval(interval);
   }, []);
+
+  // 当弹幕更新时，滚动到底部
+  useEffect(() => {
+    if (bottomRef.current) {
+      bottomRef.current.scrollIntoView({ behavior: 'smooth' });
+    }
+  }, [displayDanmakus]);
 
   const fetchDanmakus = async () => {
     try {
@@ -68,6 +76,7 @@ export default function DisplayPage() {
             {danmaku.content}
           </div>
         ))}
+        <div ref={bottomRef} />
       </div>
 
       <style jsx>{`
