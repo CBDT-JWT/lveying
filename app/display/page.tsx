@@ -66,14 +66,18 @@ export default function DisplayPage() {
         {displayDanmakus.map((danmaku, index) => (
           <div
             key={danmaku.id}
-            className={`text-4xl font-medium ${index > 0 ? 'border-t border-gray-400 pt-1' : ''}`}
-            style={{
-              animationDelay: `${index * 0.05}s`,
-              lineHeight: '1.5',
-              textShadow: '2px 2px 4px rgba(0, 0, 0, 0.8), -1px -1px 2px rgba(0, 0, 0, 0.6)'
-            }}
+            className={`${index > 0 ? 'border-t border-gray-400 pt-1' : ''}`}
           >
-            {danmaku.content}
+            <div
+              className="text-4xl font-medium animate-slideIn"
+              style={{
+                animationDelay: `${index * 0.05}s`,
+                lineHeight: '1.5',
+                textShadow: '2px 2px 4px rgba(0, 0, 0, 0.8), -1px -1px 2px rgba(0, 0, 0, 0.6)'
+              }}
+            >
+              {danmaku.content}
+            </div>
           </div>
         ))}
         <div ref={bottomRef} />
