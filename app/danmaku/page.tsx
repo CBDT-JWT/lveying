@@ -83,8 +83,8 @@ export default function DanmakuPage() {
       return;
     }
     
-    if (content.trim().length > 40) {
-      setMessage('弹幕不能超过40字');
+    if (content.trim().length > 20) {
+      setMessage('弹幕不能超过20字');
       return;
     }
 
@@ -194,12 +194,12 @@ export default function DanmakuPage() {
                 onChange={(e) => setContent(e.target.value)}
                 onFocus={() => setPlaceholder(getRandomPlaceholder(placeholder))}
                 placeholder={placeholder}
-                maxLength={40}
+                maxLength={20}
                 className="flex-1 px-4 py-3 backdrop-blur-md bg-white/80 border-2 border-white/30 rounded-full focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none transition-all text-gray-800"
               />
               <button
                 type="submit"
-                disabled={sending || !content.trim()}
+                disabled={sending || !content.trim() || content.trim().length > 20}
                 className="w-14 h-14 backdrop-blur-md bg-gradient-to-r from-blue-500/80 to-cyan-500/80 rounded-full shadow-lg border border-white/30 hover:from-blue-600/80 hover:to-cyan-600/80 transform hover:scale-110 transition-all disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none flex items-center justify-center"
               >
                 <Image
@@ -211,8 +211,8 @@ export default function DanmakuPage() {
                 />
               </button>
             </div>
-            {/* 说明：弹幕经审核后将公开展示 */}
-            <p className="mt-2 text-black text-sm text-center w-full">弹幕经审核后将公开展示</p>
+            {/* 说明：弹幕经审核后将公开展示
+            <p className="mt-2 text-black text-sm text-center w-full">弹幕经审核后将公开展示</p> */}
           </form>
 
           {message && (
