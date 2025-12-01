@@ -45,7 +45,15 @@ export default function DisplayPage() {
   };
 
   return (
-    <div className="min-h-screen bg-black text-white flex flex-col justify-end p-8">
+    <div 
+      className="min-h-screen text-white flex flex-col justify-end p-8"
+      style={{
+        backgroundImage: 'url(/danmakubg.png)',
+        backgroundSize: 'cover',
+        backgroundPosition: 'center',
+        backgroundAttachment: 'fixed'
+      }}
+    >
       <div className="space-y-2">
         {displayDanmakus.map((danmaku, index) => (
           <div
@@ -54,6 +62,7 @@ export default function DisplayPage() {
             style={{
               animationDelay: `${index * 0.05}s`,
               lineHeight: '1.5',
+              textShadow: '2px 2px 4px rgba(0, 0, 0, 0.8), -1px -1px 2px rgba(0, 0, 0, 0.6)'
             }}
           >
             {danmaku.content}
