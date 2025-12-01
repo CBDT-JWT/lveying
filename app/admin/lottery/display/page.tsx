@@ -312,10 +312,14 @@ export default function LotteryDisplayPage() {
         },
       });
       const data = await response.json();
-      setConfig(data.config);
-      // 从配置中读取奖项名称
-      if (data.config.title) {
-        setLotteryTitle(data.config.title);
+      
+      // 安全地访问配置
+      if (data && data.config) {
+        setConfig(data.config);
+        // 从配置中读取奖项名称
+        if (data.config.title) {
+          setLotteryTitle(data.config.title);
+        }
       }
     } catch (error) {
       console.error('获取抽奖配置失败:', error);
