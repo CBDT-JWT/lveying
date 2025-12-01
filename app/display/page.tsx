@@ -84,6 +84,8 @@ export default function DisplayPage() {
 
         .animate-slideIn {
           animation: slideIn 0.5s ease-out forwards;
+          opacity: 0;
+          transform: translateX(-100%);
         }
       `}</style>
     </div>
