@@ -96,7 +96,7 @@ export default function DisplayPage() {
         }
 
         .animate-slideIn {
-          animation: slideIn 0.5s ease-out forwards;
+          animation: slideIn 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
           opacity: 0;
           transform: translateX(calc(-100% - 2rem));
         }
