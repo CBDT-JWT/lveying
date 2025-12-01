@@ -203,9 +203,9 @@ export default function ProgramPerformersDisplay({ performers, band_name, classN
             justify-content: flex-end;
           }
           .performers-display .actor-name-block {
-            flex: 0 0 4em;
-            width: 4em;
-            min-width: 4em;
+            flex: 0 0 3em;
+            width: 3em;
+            min-width: 3em;
           }
           .performers-display .names-row {
             justify-content: flex-end;
@@ -213,9 +213,9 @@ export default function ProgramPerformersDisplay({ performers, band_name, classN
           .performers-display .non-actor-name {
             color: #000;
             text-align: right;
-            flex: 0 0 4em;
-            width: 4em;
-            min-width: 4em;
+            flex: 0 0 3em;
+            width: 3em;
+            min-width: 3em;
           }
       `}</style>
     </div>
