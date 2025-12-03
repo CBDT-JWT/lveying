@@ -113,7 +113,11 @@ export default function Home() {
               </p>
               <br/>
               <p className="text-gray-700 text-left">
-                更多信息敬请参考<a href="https://mp.weixin.qq.com/s/F_FFAVio_1wCcsqHtuzvAg">掠影 | 不要掠过那个瞬间</a>, <a href="https://mp.weixin.qq.com/s/TpUp6TUaaXE1UOsH5knKgg">掠影 | 主海报发布</a>, <a href="https://mp.weixin.qq.com/s/WKw7fFFJr_-eKgKdXBaYMQ">掠影 | 路演来啦！</a>。
+                更多信息敬请参考:</p>
+              <p className="text-gray-700 text-center">
+                <a href="https://mp.weixin.qq.com/s/F_FFAVio_1wCcsqHtuzvAg" className="underline">掠影 | 不要掠过那个瞬间</a><br/>
+                 <a href="https://mp.weixin.qq.com/s/TpUp6TUaaXE1UOsH5knKgg" className="underline">掠影 | 主海报发布</a><br/>
+                 <a href="https://mp.weixin.qq.com/s/WKw7fFFJr_-eKgKdXBaYMQ" className="underline">掠影 | 路演来啦！</a>
                 </p>
             </div>
 
