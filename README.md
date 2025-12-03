@@ -348,6 +348,146 @@
 
 ## 项目结构
 
-项目采用 Next.js 14 的 App Router 架构组织代码。`app` 目录包含所有页面和 API 路由，其中 `api` 子目录存放后端接口，按功能模块划分为 `admin`、`danmaku`、`lottery`、`programs` 等目录。`admin` 子目录包含所有管理端页面，包括登录页、控制台、节目管理、弹幕管理、抽奖管理等。观众端页面直接放在 `app` 目录下，包括主页、节目进度页、弹幕页、抽奖页等。`components` 目录存放可复用的 React 组件，如导航栏、Markdown 渲染器、演职人员展示组件等。`lib` 目录包含工具函数库，如认证工具（`auth.ts`）、数据存储工具（`dataStore.ts`）。`types` 目录定义了 TypeScript 类型接口。`data` 目录用于存储 JSON 数据文件。`public` 目录存放静态资源，如图片、字体等。`scripts` 目录包含构建和部署脚本。
+项目采用 Next.js 14 的 App Router 架构组织代码，以下是详细的目录和文件说明：
+
+```
+lueying/
+├── app/                              # Next.js App Router 根目录
+│   ├── globals.css                   # 全局样式文件，包含 Tailwind CSS 指令和自定义样式
+│   ├── layout.tsx                    # 根布局组件，定义页面的基础 HTML 结构和元数据
+│   ├── page.tsx                      # 首页（主页），展示晚会海报和介绍信息
+│   │
+│   ├── api/                          # API 路由目录
+│   │   ├── admin/                    # 管理员相关 API
+│   │   │   ├── login/route.ts        # 管理员登录接口
+│   │   │   ├── change-password/route.ts  # 修改管理员密码接口
+│   │   │   └── banned-ips/route.ts   # IP 封禁管理接口（GET/POST/DELETE）
+│   │   │
+│   │   ├── danmaku/                  # 弹幕相关 API
+│   │   │   ├── route.ts              # 弹幕管理接口（GET 所有/POST 发送/DELETE 清空）
+│   │   │   ├── censored/route.ts     # 弹幕审核接口（GET 已审核/POST 审核操作）
+│   │   │   └── public/route.ts       # 公开弹幕接口（GET 已审核弹幕，与 censored 相同）
+│   │   │
+│   │   ├── lottery/                  # 抽奖相关 API
+│   │   │   ├── config/route.ts       # 抽奖配置接口（GET/POST）
+│   │   │   ├── result/route.ts       # 保存抽奖结果接口（POST）
+│   │   │   └── history/route.ts      # 抽奖历史接口（GET 公开/DELETE 清空）
+│   │   │
+│   │   └── programs/                 # 节目相关 API
+│   │       ├── route.ts              # 节目管理接口（GET/POST/PATCH/PUT/DELETE）
+│   │       └── add/route.ts          # 添加节目接口（POST）
+│   │
+│   ├── admin/                        # 管理员后台页面
+│   │   ├── page.tsx                  # 管理员登录页面
+│   │   ├── change-password/page.tsx  # 修改密码页面
+│   │   ├── dashboard/page.tsx        # 管理员控制台（主菜单）
+│   │   ├── programs/page.tsx         # 节目管理页面
+│   │   ├── danmaku/page.tsx          # 弹幕审核和管理页面
+│   │   └── lottery/                  # 抽奖管理模块
+│   │       ├── page.tsx              # 抽奖管理主页（重定向到配置页）
+│   │       ├── config/page.tsx       # 抽奖配置页面
+│   │       └── display/page.tsx      # 全屏抽奖展示页面（含动画效果）
+│   │
+│   ├── credits/                      # 演职人员名单页面
+│   │   └── page.tsx                  # 从 credits.md 渲染演职人员名单
+│   │
+│   ├── danmaku/                      # 观众端弹幕页面
+│   │   └── page.tsx                  # 弹幕发送和展示页面
+│   │
+│   ├── display/                      # 大屏幕展示页面
+│   │   └── page.tsx                  # 弹幕大屏展示（带动画效果）
+│   │
+│   ├── lottery/                      # 观众端抽奖页面
+│   │   └── page.tsx                  # 抽奖结果展示页面
+│   │
+│   └── programs/                     # 观众端节目页面
+│       └── page.tsx                  # 节目单和进度展示页面
+│
+├── components/                       # 可复用的 React 组件
+│   ├── BuildTime.tsx                 # 构建时间显示组件（已弃用）
+│   ├── GuestNavBar.tsx               # 观众端导航栏组件
+│   ├── MarkdownRenderer.tsx          # Markdown 渲染组件（支持 KaTeX 数学公式）
+│   ├── ProgramPerformersDisplay.tsx  # 节目演职人员展示组件
+│   ├── TitleManager.tsx              # 页面标题管理组件
+│   ├── PerformersEditor.tsx          # 演职人员编辑器（v1，旧版）
+│   ├── PerformersEditor-v2.tsx       # 演职人员编辑器（v2）
+│   └── PerformersEditor-v3.tsx       # 演职人员编辑器（v3，当前版本）
+│
+├── lib/                              # 工具函数库
+│   ├── auth.ts                       # JWT 认证工具（生成/验证 Token）
+│   ├── buildTime.ts                  # 构建时间工具（已弃用）
+│   ├── dataStore.ts                  # 数据存储管理（JSON 文件读写）
+│   └── userManager.ts                # 用户管理（密码验证和修改）
+│
+├── types/                            # TypeScript 类型定义
+│   └── index.ts                      # 全局类型定义（Program, Danmaku, LotteryConfig 等）
+│
+├── data/                             # 数据存储目录（JSON 文件）
+│   └── store.json                    # 主数据文件（节目、弹幕、抽奖等数据）
+│
+├── public/                           # 静态资源目录
+│   ├── favicon-16.png                # 16x16 网站图标
+│   ├── favicon-32.png                # 32x32 网站图标
+│   ├── favicon-48.png                # 48x48 网站图标
+│   ├── favicon.jpg                   # 原始网站图标
+│   ├── apple-touch-icon.png          # iOS 主屏幕图标
+│   │
+│   ├── poster.png                    # 晚会主海报
+│   ├── guestbg.png                   # 观众端背景图
+│   ├── danmakubg.png                 # 弹幕展示页背景图
+│   ├── lotterybg.jpg                 # 抽奖页面背景图
+│   ├── credits.jpg                   # 演职人员页背景图
+│   │
+│   ├── max1.jpg                      # 抽奖背景图 1（特等奖）
+│   ├── max2.jpg                      # 抽奖背景图 2（一等奖）
+│   ├── max3.jpg                      # 抽奖背景图 3（二等奖）
+│   ├── max4.jpg                      # 抽奖背景图 4（三等奖）
+│   │
+│   ├── home.png                      # 导航图标 - 首页
+│   ├── programs.png                  # 导航图标 - 节目
+│   ├── lottery.png                   # 导航图标 - 抽奖
+│   ├── chat.png                      # 导航图标 - 弹幕
+│   ├── badge.png                     # 导航图标 - 演职人员
+│   │
+│   ├── play.png                      # 控制图标 - 播放
+│   ├── refresh.png                   # 控制图标 - 刷新
+│   ├── return.png                    # 控制图标 - 返回
+│   ├── rewind.png                    # 控制图标 - 后退
+│   ├── send.png                      # 控制图标 - 发送
+│   ├── shutter.png                   # 控制图标 - 快门
+│   │
+│   ├── server.png                    # 服务器图标（彩蛋）
+│   ├── gongpai-2.png                 # 工牌图片
+│   ├── shutter.mp3                   # 快门音效
+│   │
+│   ├── credits.md                    # 演职人员名单 Markdown 文件
+│   ├── bfb255e05904cc53e855cf4aacc37ef4.txt  # 域名验证文件
+│   └── df3715c85e00567bd33c37b1c22cfaab.txt  # 域名验证文件
+│
+├── scripts/                          # 构建和部署脚本
+│   └── set-build-time.js             # 设置构建时间脚本（已弃用）
+│
+├── package.json                      # npm 项目配置文件
+├── tsconfig.json                     # TypeScript 配置文件
+├── next.config.js                    # Next.js 配置文件
+├── tailwind.config.ts                # Tailwind CSS 配置文件
+├── postcss.config.js                 # PostCSS 配置文件
+├── .eslintrc.json                    # ESLint 代码检查配置
+├── .gitignore                        # Git 忽略文件配置
+├── .env.local                        # 环境变量文件（本地，不提交）
+└── README.md                         # 项目说明文档
+```
+
+### 关键文件说明
+
+**数据存储** (`lib/dataStore.ts`): 核心数据管理模块，负责读写 `data/store.json`，提供节目、弹幕、抽奖、IP 封禁等数据的增删改查接口。
+
+**认证系统** (`lib/auth.ts`, `lib/userManager.ts`): JWT Token 生成和验证，管理员密码的加密存储和验证。
+
+**类型定义** (`types/index.ts`): 定义了整个项目使用的 TypeScript 接口，包括 `Program`（节目）、`Danmaku`（弹幕）、`LotteryConfig`（抽奖配置）等。
+
+**抽奖动画** (`app/admin/lottery/display/page.tsx`): 实现了完整的抽奖动画效果，支持键盘快捷键、离线队列、滚动数字动画等高级功能。
+
+**弹幕系统**: 包含发送、审核、展示三个部分，支持 IP 封禁和自动规范化 IPv6 地址。
 
 
