@@ -18,9 +18,9 @@
 
 ## 快速开始
 
-在开始使用之前，请确保您的开发环境已安装 Node.js 18 或更高版本以及 npm 包管理器。首先克隆项目仓库到本地，然后在项目根目录下运行 `npm install` 安装所有依赖包。安装完成后，需要配置管理员密码。您可以使用 Node.js 命令生成密码哈希值：`node -e "const bcrypt = require('bcryptjs'); bcrypt.hash('your-password', 10).then(console.log);"`。将生成的哈希值和一个随机的 JWT 密钥添加到 `.env.local` 文件中。配置完成后，运行 `npm run dev` 启动开发服务器，访问 `http://localhost:3000` 即可看到系统主页。
+在开始使用之前，请确保您的开发环境已安装 Node.js 18 或更高版本以及 npm 包管理器。首先克隆项目仓库到本地，然后在项目根目录下运行 `npm install` 安装所有依赖包。安装完成后，需要配置管理员密码。您可以使用 Node.js 命令生成密码哈希值：`node -e "const bcrypt = require('bcryptjs'); bcrypt.hash('your-password', 10).then(console.log);"`。将生成的哈希值和一个随机的 JWT 密钥添加到 `.env.local` 文件中。配置完成后，运行 `npm run dev` 启动开发服务器，访问 `http://localhost:8880` 即可看到系统主页。
 
-对于生产环境部署，首先运行 `npm run build` 构建项目，然后使用 `npm start` 启动生产服务器。强烈建议在生产环境中使用 HTTPS 协议，修改默认管理员密码，并使用强随机字符串作为 JWT 密钥以确保系统安全。
+对于生产环境部署，首先运行 `npm run build` 构建项目，然后使用 `npm start` 启动生产服务器。
 
 ## 使用指南
 
@@ -44,7 +44,7 @@
 - **返回**: `{ programs: Program[] }`
 - **示例**:
   ```bash
-  curl http://localhost:3000/api/programs
+  curl http://localhost:8880/api/programs
   ```
 
 #### 获取抽奖结果
@@ -55,7 +55,7 @@
 - **返回**: `{ results: LotteryResult[] }`
 - **示例**:
   ```bash
-  curl http://localhost:3000/api/lottery/result
+  curl http://localhost:8880/api/lottery/result
   ```
 
 #### 获取已审核的弹幕
@@ -66,7 +66,7 @@
 - **返回**: `{ danmakus: Danmaku[] }` (不含 IP 地址)
 - **示例**:
   ```bash
-  curl http://localhost:3000/api/danmaku/censored
+  curl http://localhost:8880/api/danmaku/censored
   ```
 
 #### 发送弹幕
@@ -78,7 +78,7 @@
 - **说明**: 自动记录发送者 IP，需审核后才公开展示
 - **示例**:
   ```bash
-  curl -X POST http://localhost:3000/api/danmaku \
+  curl -X POST http://localhost:8880/api/danmaku \
     -H "Content-Type: application/json" \
     -d '{"content":"精彩的节目！"}'
   ```
@@ -97,7 +97,7 @@
 - **返回**: `{ token: string }`
 - **示例**:
   ```bash
-  curl -X POST http://localhost:3000/api/admin/login \
+  curl -X POST http://localhost:8880/api/admin/login \
     -H "Content-Type: application/json" \
     -d '{"password":"your-password"}'
   ```
@@ -110,7 +110,7 @@
 - **返回**: `{ success: boolean, program: Program }`
 - **示例**:
   ```bash
-  curl -X POST http://localhost:3000/api/programs/add \
+  curl -X POST http://localhost:8880/api/programs/add \
     -H "Authorization: Bearer <token>" \
     -H "Content-Type: application/json" \
     -d '{"title":"开场舞","band_name":"舞蹈团"}'
@@ -125,7 +125,7 @@
 - **说明**: 用于标记当前进行中的节目
 - **示例**:
   ```bash
-  curl -X POST http://localhost:3000/api/programs \
+  curl -X POST http://localhost:8880/api/programs \
     -H "Authorization: Bearer <token>" \
     -H "Content-Type: application/json" \
     -d '{"programs":[...]}'
@@ -140,7 +140,7 @@
 - **说明**: 包含所有弹幕，含待审核和已审核的，用于管理员审核
 - **示例**:
   ```bash
-  curl http://localhost:3000/api/danmaku \
+  curl http://localhost:8880/api/danmaku \
     -H "Authorization: Bearer <token>"
   ```
 
@@ -153,7 +153,7 @@
 - **说明**: 批量通过或拒绝弹幕，`censor: true` 为通过，`false` 为拒绝
 - **示例**:
   ```bash
-  curl -X POST http://localhost:3000/api/danmaku/censored \
+  curl -X POST http://localhost:8880/api/danmaku/censored \
     -H "Authorization: Bearer <token>" \
     -H "Content-Type: application/json" \
     -d '{"danmakuIds":["id1","id2"],"censor":true}'
@@ -167,7 +167,7 @@
 - **返回**: `{ success: boolean }`
 - **示例**:
   ```bash
-  curl -X DELETE http://localhost:3000/api/danmaku \
+  curl -X DELETE http://localhost:8880/api/danmaku \
     -H "Authorization: Bearer <token>"
   ```
 
@@ -180,7 +180,7 @@
 - **说明**: 被封禁的 IP 无法发送弹幕，其已审核的历史弹幕也会被取消
 - **示例**:
   ```bash
-  curl -X POST http://localhost:3000/api/admin/banned-ips \
+  curl -X POST http://localhost:8880/api/admin/banned-ips \
     -H "Authorization: Bearer <token>" \
     -H "Content-Type: application/json" \
     -d '{"ip":"192.168.1.100"}'
@@ -194,7 +194,7 @@
 - **返回**: `{ success: boolean }`
 - **示例**:
   ```bash
-  curl -X DELETE http://localhost:3000/api/admin/banned-ips \
+  curl -X DELETE http://localhost:8880/api/admin/banned-ips \
     -H "Authorization: Bearer <token>" \
     -H "Content-Type: application/json" \
     -d '{"ip":"192.168.1.100"}'
@@ -208,7 +208,7 @@
 - **返回**: `{ config: LotteryConfig }`
 - **示例**:
   ```bash
-  curl http://localhost:3000/api/lottery/config \
+  curl http://localhost:8880/api/lottery/config \
     -H "Authorization: Bearer <token>"
   ```
 
@@ -220,7 +220,7 @@
 - **返回**: `{ success: boolean }`
 - **示例**:
   ```bash
-  curl -X POST http://localhost:3000/api/lottery/config \
+  curl -X POST http://localhost:8880/api/lottery/config \
     -H "Authorization: Bearer <token>" \
     -H "Content-Type: application/json" \
     -d '{"title":"一等奖","minNumber":1,"maxNumber":100,"count":3}'
@@ -234,7 +234,7 @@
 - **返回**: `{ success: boolean }`
 - **示例**:
   ```bash
-  curl -X POST http://localhost:3000/api/lottery/result \
+  curl -X POST http://localhost:8880/api/lottery/result \
     -H "Authorization: Bearer <token>" \
     -H "Content-Type: application/json" \
     -d '{"title":"一等奖","numbers":[15,42,88]}'
@@ -248,7 +248,7 @@
 - **返回**: `{ results: LotteryResult[] }`
 - **示例**:
   ```bash
-  curl http://localhost:3000/api/lottery/history \
+  curl http://localhost:8880/api/lottery/history \
     -H "Authorization: Bearer <token>"
   ```
 
