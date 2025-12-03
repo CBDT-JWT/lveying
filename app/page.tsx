@@ -117,7 +117,7 @@ export default function Home() {
                  <a href="https://mp.weixin.qq.com/s/WKw7fFFJr_-eKgKdXBaYMQ" className="font-bold underline "style={{ color: 'rgb(96, 71, 25)' }}>掠影 | 路演来啦！</a><br/>
                  <a href="https://mp.weixin.qq.com/s/pCf5nociJ0_ERusoWVIcIQ" className="font-bold underline "style={{ color: 'rgb(96, 71, 25)' }}>掠影 | 主题宣传视频《寻影》发布</a><br/>
                  <a href="https://mp.weixin.qq.com/s/FBUXMEZTxtj974Y5HNFvWw" className="font-bold underline" style={{ color: 'rgb(96, 71, 25)' }}>掠影 | 线上抽奖来啦！</a><br/>
-                 <a href="https://mp.weixin.qq.com/s/KusZuCXHg179O-8myGgm8g" className="font-bold underline" style={{ color: 'rgb(96, 71, 25)' }}>掠影 | 掠影｜主持人介绍 & 活动网站发布</a><br/>
+                 <a href="https://mp.weixin.qq.com/s/KusZuCXHg179O-8myGgm8g" className="font-bold underline" style={{ color: 'rgb(96, 71, 25)' }}>掠影 | 主持人介绍 & 活动网站发布</a><br/>
                 </p>
             </div>
 
