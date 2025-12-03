@@ -61,12 +61,15 @@
 #### 获取已审核的弹幕
 
 - **方法**: `GET`
-- **路径**: `/api/danmaku/censored`
+- **路径**: `/api/danmaku/censored` 或 `/api/danmaku/public`
 - **参数**: 无
-- **返回**: `{ danmakus: Danmaku[] }` (不含 IP 地址)
+- **返回**: `{ danmakus: Danmaku[] }` (不含 IP 地址，仅返回最新20条)
+- **说明**: 两个路径功能相同，都是获取已通过审核的弹幕
 - **示例**:
   ```bash
   curl http://localhost:8880/api/danmaku/censored
+  # 或
+  curl http://localhost:8880/api/danmaku/public
   ```
 
 #### 发送弹幕
@@ -102,6 +105,21 @@
     -d '{"password":"your-password"}'
   ```
 
+#### 修改管理员密码
+
+- **方法**: `POST`
+- **路径**: `/api/admin/change-password`
+- **参数**: `{ currentPassword: string, newPassword: string }`
+- **返回**: `{ success: boolean, message: string }`
+- **说明**: 修改管理员密码，需要提供当前密码验证，新密码长度不少于6位
+- **示例**:
+  ```bash
+  curl -X POST http://localhost:8880/api/admin/change-password \
+    -H "Authorization: Bearer <token>" \
+    -H "Content-Type: application/json" \
+    -d '{"currentPassword":"old-password","newPassword":"new-password"}'
+  ```
+
 #### 添加节目
 
 - **方法**: `POST`
@@ -122,13 +140,55 @@
 - **路径**: `/api/programs`
 - **参数**: `{ programs: Program[] }`
 - **返回**: `{ success: boolean }`
-- **说明**: 用于标记当前进行中的节目
+- **说明**: 用于批量更新所有节目（替换整个节目列表）
 - **示例**:
   ```bash
   curl -X POST http://localhost:8880/api/programs \
     -H "Authorization: Bearer <token>" \
     -H "Content-Type: application/json" \
     -d '{"programs":[...]}'
+  ```
+
+#### 更新单个节目状态
+
+- **方法**: `PATCH`
+- **路径**: `/api/programs`
+- **参数**: `{ id: string, completed: boolean }`
+- **返回**: `{ success: boolean }`
+- **说明**: 标记单个节目为已完成或未完成
+- **示例**:
+  ```bash
+  curl -X PATCH http://localhost:8880/api/programs \
+    -H "Authorization: Bearer <token>" \
+    -H "Content-Type: application/json" \
+    -d '{"id":"program-1","completed":true}'
+  ```
+
+#### 更新节目详情
+
+- **方法**: `PUT`
+- **路径**: `/api/programs`
+- **参数**: `{ id: string, title?: string, performers?: [string, string[]][], band_name?: string, order?: number, parentId?: string, subOrder?: number }`
+- **返回**: `{ success: boolean }`
+- **说明**: 更新单个节目的详细信息
+- **示例**:
+  ```bash
+  curl -X PUT http://localhost:8880/api/programs \
+    -H "Authorization: Bearer <token>" \
+    -H "Content-Type: application/json" \
+    -d '{"id":"program-1","title":"新标题","order":1}'
+  ```
+
+#### 删除节目
+
+- **方法**: `DELETE`
+- **路径**: `/api/programs?id=<program-id>`
+- **参数**: 查询参数 `id` (节目 ID)
+- **返回**: `{ success: boolean }`
+- **示例**:
+  ```bash
+  curl -X DELETE "http://localhost:8880/api/programs?id=program-1" \
+    -H "Authorization: Bearer <token>"
   ```
 
 #### 获取所有弹幕
@@ -171,13 +231,25 @@
     -H "Authorization: Bearer <token>"
   ```
 
+#### 获取封禁 IP 列表
+
+- **方法**: `GET`
+- **路径**: `/api/admin/banned-ips`
+- **参数**: 无
+- **返回**: `{ ips: string[] }`
+- **示例**:
+  ```bash
+  curl http://localhost:8880/api/admin/banned-ips \
+    -H "Authorization: Bearer <token>"
+  ```
+
 #### 封禁 IP
 
 - **方法**: `POST`
 - **路径**: `/api/admin/banned-ips`
 - **参数**: `{ ip: string }`
-- **返回**: `{ success: boolean }`
-- **说明**: 被封禁的 IP 无法发送弹幕，其已审核的历史弹幕也会被取消
+- **返回**: `{ success: boolean, ip: string, affected: number }`
+- **说明**: 被封禁的 IP 无法发送弹幕，其已审核的历史弹幕也会被取消。返回受影响的弹幕数量
 - **示例**:
   ```bash
   curl -X POST http://localhost:8880/api/admin/banned-ips \
@@ -190,14 +262,21 @@
 
 - **方法**: `DELETE`
 - **路径**: `/api/admin/banned-ips`
-- **参数**: `{ ip: string }`
-- **返回**: `{ success: boolean }`
+- **参数**: `{ ip: string }` (如果不提供 ip，则清空所有封禁)
+- **返回**: `{ success: boolean, ip?: string }`
 - **示例**:
   ```bash
+  # 解封特定 IP
   curl -X DELETE http://localhost:8880/api/admin/banned-ips \
     -H "Authorization: Bearer <token>" \
     -H "Content-Type: application/json" \
     -d '{"ip":"192.168.1.100"}'
+  
+  # 清空所有封禁
+  curl -X DELETE http://localhost:8880/api/admin/banned-ips \
+    -H "Authorization: Bearer <token>" \
+    -H "Content-Type: application/json" \
+    -d '{}'
   ```
 
 #### 获取抽奖配置
@@ -245,10 +324,23 @@
 - **方法**: `GET`
 - **路径**: `/api/lottery/history`
 - **参数**: 无
-- **返回**: `{ results: LotteryResult[] }`
+- **返回**: `{ history: LotteryResult[] }`
+- **说明**: 公开接口，无需认证
 - **示例**:
   ```bash
-  curl http://localhost:8880/api/lottery/history \
+  curl http://localhost:8880/api/lottery/history
+  ```
+
+#### 清空抽奖历史
+
+- **方法**: `DELETE`
+- **路径**: `/api/lottery/history`
+- **参数**: 无
+- **返回**: `{ success: boolean }`
+- **说明**: 删除所有抽奖历史记录
+- **示例**:
+  ```bash
+  curl -X DELETE http://localhost:8880/api/lottery/history \
     -H "Authorization: Bearer <token>"
   ```
 
