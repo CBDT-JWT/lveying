@@ -34,35 +34,223 @@
 
 ### 公开接口
 
-以下接口无需认证，观众端可以直接调用：
+以下接口无需认证，观众端可以直接调用。
 
-| 方法 | 路径 | 说明 | 备注 |
-|------|------|------|------|
-| GET | `/api/programs` | 获取节目单 | 返回所有节目及当前进度 |
-| GET | `/api/lottery/result` | 获取抽奖结果 | 返回所有抽奖历史记录 |
-| GET | `/api/danmaku/censored` | 获取已审核的弹幕 | 仅返回已通过审核的弹幕 |
-| POST | `/api/danmaku` | 发送弹幕 | 自动记录发送者 IP，需审核后才公开展示 |
+#### 获取节目单
+
+- **方法**: `GET`
+- **路径**: `/api/programs`
+- **参数**: 无
+- **返回**: `{ programs: Program[] }`
+- **示例**:
+  ```bash
+  curl http://localhost:3000/api/programs
+  ```
+
+#### 获取抽奖结果
+
+- **方法**: `GET`
+- **路径**: `/api/lottery/result`
+- **参数**: 无
+- **返回**: `{ results: LotteryResult[] }`
+- **示例**:
+  ```bash
+  curl http://localhost:3000/api/lottery/result
+  ```
+
+#### 获取已审核的弹幕
+
+- **方法**: `GET`
+- **路径**: `/api/danmaku/censored`
+- **参数**: 无
+- **返回**: `{ danmakus: Danmaku[] }` (不含 IP 地址)
+- **示例**:
+  ```bash
+  curl http://localhost:3000/api/danmaku/censored
+  ```
+
+#### 发送弹幕
+
+- **方法**: `POST`
+- **路径**: `/api/danmaku`
+- **参数**: `{ content: string }` (最大20个字符)
+- **返回**: `{ success: boolean, message: string }`
+- **说明**: 自动记录发送者 IP，需审核后才公开展示
+- **示例**:
+  ```bash
+  curl -X POST http://localhost:3000/api/danmaku \
+    -H "Content-Type: application/json" \
+    -d '{"content":"精彩的节目！"}'
+  ```
 
 **注意**：弹幕接口会记录发送者的 IP 地址用于审核和日志记录。系统会自动将 IPv6 映射的 IPv4 地址（如 `::ffff:1.2.3.4`）规范化为标准格式（`1.2.3.4`）。
 
 ### 管理员接口
 
-以下接口需要在请求头中携带 JWT Token 进行认证（`Authorization: Bearer <token>`）：
+以下接口需要在请求头中携带 JWT Token 进行认证（`Authorization: Bearer <token>`）。
 
-| 方法 | 路径 | 说明 | 备注 |
-|------|------|------|------|
-| POST | `/api/admin/login` | 管理员登录 | 接收密码，返回 JWT Token |
-| POST | `/api/programs/add` | 添加节目 | 添加新节目到节目单 |
-| POST | `/api/programs` | 更新节目状态 | 标记当前进行中的节目 |
-| GET | `/api/danmaku` | 获取所有弹幕 | 包含 IP 地址，用于审核 |
-| POST | `/api/danmaku/censored` | 审核弹幕 | 批量通过或拒绝弹幕 |
-| DELETE | `/api/danmaku` | 清空弹幕 | 删除所有弹幕记录 |
-| POST | `/api/admin/banned-ips` | 封禁 IP | 被封禁 IP 无法发送弹幕，已审核的历史弹幕也会被取消 |
-| DELETE | `/api/admin/banned-ips` | 解封 IP | 移除 IP 封禁 |
-| GET | `/api/lottery/config` | 获取抽奖配置 | 返回当前抽奖参数 |
-| POST | `/api/lottery/config` | 更新抽奖配置 | 设置奖项名称、人数、背景等 |
-| POST | `/api/lottery/result` | 保存抽奖结果 | 记录中奖号码 |
-| GET | `/api/lottery/history` | 获取抽奖历史 | 返回所有历史抽奖记录 |
+#### 管理员登录
+
+- **方法**: `POST`
+- **路径**: `/api/admin/login`
+- **参数**: `{ password: string }`
+- **返回**: `{ token: string }`
+- **示例**:
+  ```bash
+  curl -X POST http://localhost:3000/api/admin/login \
+    -H "Content-Type: application/json" \
+    -d '{"password":"your-password"}'
+  ```
+
+#### 添加节目
+
+- **方法**: `POST`
+- **路径**: `/api/programs/add`
+- **参数**: `{ title: string, performers?: [string, string[]][], band_name?: string, ... }`
+- **返回**: `{ success: boolean, program: Program }`
+- **示例**:
+  ```bash
+  curl -X POST http://localhost:3000/api/programs/add \
+    -H "Authorization: Bearer <token>" \
+    -H "Content-Type: application/json" \
+    -d '{"title":"开场舞","band_name":"舞蹈团"}'
+  ```
+
+#### 更新节目状态
+
+- **方法**: `POST`
+- **路径**: `/api/programs`
+- **参数**: `{ programs: Program[] }`
+- **返回**: `{ success: boolean }`
+- **说明**: 用于标记当前进行中的节目
+- **示例**:
+  ```bash
+  curl -X POST http://localhost:3000/api/programs \
+    -H "Authorization: Bearer <token>" \
+    -H "Content-Type: application/json" \
+    -d '{"programs":[...]}'
+  ```
+
+#### 获取所有弹幕
+
+- **方法**: `GET`
+- **路径**: `/api/danmaku`
+- **参数**: 无
+- **返回**: `{ danmakus: Danmaku[] }` (含 IP 地址)
+- **说明**: 包含所有弹幕，含待审核和已审核的，用于管理员审核
+- **示例**:
+  ```bash
+  curl http://localhost:3000/api/danmaku \
+    -H "Authorization: Bearer <token>"
+  ```
+
+#### 审核弹幕
+
+- **方法**: `POST`
+- **路径**: `/api/danmaku/censored`
+- **参数**: `{ danmakuIds: string[], censor: boolean }`
+- **返回**: `{ success: boolean }`
+- **说明**: 批量通过或拒绝弹幕，`censor: true` 为通过，`false` 为拒绝
+- **示例**:
+  ```bash
+  curl -X POST http://localhost:3000/api/danmaku/censored \
+    -H "Authorization: Bearer <token>" \
+    -H "Content-Type: application/json" \
+    -d '{"danmakuIds":["id1","id2"],"censor":true}'
+  ```
+
+#### 清空弹幕
+
+- **方法**: `DELETE`
+- **路径**: `/api/danmaku`
+- **参数**: 无
+- **返回**: `{ success: boolean }`
+- **示例**:
+  ```bash
+  curl -X DELETE http://localhost:3000/api/danmaku \
+    -H "Authorization: Bearer <token>"
+  ```
+
+#### 封禁 IP
+
+- **方法**: `POST`
+- **路径**: `/api/admin/banned-ips`
+- **参数**: `{ ip: string }`
+- **返回**: `{ success: boolean }`
+- **说明**: 被封禁的 IP 无法发送弹幕，其已审核的历史弹幕也会被取消
+- **示例**:
+  ```bash
+  curl -X POST http://localhost:3000/api/admin/banned-ips \
+    -H "Authorization: Bearer <token>" \
+    -H "Content-Type: application/json" \
+    -d '{"ip":"192.168.1.100"}'
+  ```
+
+#### 解封 IP
+
+- **方法**: `DELETE`
+- **路径**: `/api/admin/banned-ips`
+- **参数**: `{ ip: string }`
+- **返回**: `{ success: boolean }`
+- **示例**:
+  ```bash
+  curl -X DELETE http://localhost:3000/api/admin/banned-ips \
+    -H "Authorization: Bearer <token>" \
+    -H "Content-Type: application/json" \
+    -d '{"ip":"192.168.1.100"}'
+  ```
+
+#### 获取抽奖配置
+
+- **方法**: `GET`
+- **路径**: `/api/lottery/config`
+- **参数**: 无
+- **返回**: `{ config: LotteryConfig }`
+- **示例**:
+  ```bash
+  curl http://localhost:3000/api/lottery/config \
+    -H "Authorization: Bearer <token>"
+  ```
+
+#### 更新抽奖配置
+
+- **方法**: `POST`
+- **路径**: `/api/lottery/config`
+- **参数**: `{ title: string, minNumber: number, maxNumber: number, count: number, backgroundImage?: string }`
+- **返回**: `{ success: boolean }`
+- **示例**:
+  ```bash
+  curl -X POST http://localhost:3000/api/lottery/config \
+    -H "Authorization: Bearer <token>" \
+    -H "Content-Type: application/json" \
+    -d '{"title":"一等奖","minNumber":1,"maxNumber":100,"count":3}'
+  ```
+
+#### 保存抽奖结果
+
+- **方法**: `POST`
+- **路径**: `/api/lottery/result`
+- **参数**: `{ title: string, numbers: number[] }`
+- **返回**: `{ success: boolean }`
+- **示例**:
+  ```bash
+  curl -X POST http://localhost:3000/api/lottery/result \
+    -H "Authorization: Bearer <token>" \
+    -H "Content-Type: application/json" \
+    -d '{"title":"一等奖","numbers":[15,42,88]}'
+  ```
+
+#### 获取抽奖历史
+
+- **方法**: `GET`
+- **路径**: `/api/lottery/history`
+- **参数**: 无
+- **返回**: `{ results: LotteryResult[] }`
+- **示例**:
+  ```bash
+  curl http://localhost:3000/api/lottery/history \
+    -H "Authorization: Bearer <token>"
+  ```
 
 **认证说明**：所有管理员接口都需要有效的 JWT Token。Token 通过登录接口获取，有效期为 7 天。未授权的请求会返回 401 错误。
 
@@ -70,22 +258,4 @@
 
 项目采用 Next.js 14 的 App Router 架构组织代码。`app` 目录包含所有页面和 API 路由，其中 `api` 子目录存放后端接口，按功能模块划分为 `admin`、`danmaku`、`lottery`、`programs` 等目录。`admin` 子目录包含所有管理端页面，包括登录页、控制台、节目管理、弹幕管理、抽奖管理等。观众端页面直接放在 `app` 目录下，包括主页、节目进度页、弹幕页、抽奖页等。`components` 目录存放可复用的 React 组件，如导航栏、Markdown 渲染器、演职人员展示组件等。`lib` 目录包含工具函数库，如认证工具（`auth.ts`）、数据存储工具（`dataStore.ts`）。`types` 目录定义了 TypeScript 类型接口。`data` 目录用于存储 JSON 数据文件。`public` 目录存放静态资源，如图片、字体等。`scripts` 目录包含构建和部署脚本。
 
-## 扩展与优化建议
 
-当前系统使用 JSON 文件存储数据，适合中小型晚会场景，但重启服务器后数据会丢失。对于大型晚会或需要长期保存数据的场景，建议集成真实的数据库系统，如 PostgreSQL、MySQL 或 MongoDB。数据库不仅能提供持久化存储，还能支持更复杂的查询和并发控制。
-
-系统目前采用轮询方式获取最新数据，观众端每隔几秒请求一次 API。为了提供更流畅的实时体验，可以集成 WebSocket 或 Server-Sent Events（SSE）实现服务端推送。这样当有新弹幕、新节目或新抽奖结果时，服务器可以主动推送给客户端，减少网络请求，提升响应速度。
-
-为了方便观众访问，可以为各个观众端页面生成二维码，打印出来或投影到大屏幕上，观众扫码即可快速进入相应页面。可以使用 `qrcode` 库实现二维码生成功能。
-
-## 开源协议
-
-本项目采用 MIT 开源协议，您可以自由使用、修改和分发本项目代码。
-
-## 作者信息
-
-本系统由江玮陶开发，为清华大学电子系第27届学生节"掠影"晚会提供技术支持。项目源码托管在 GitHub 上，欢迎提出问题和建议。
-
----
-
-© 2025 江玮陶 | [个人网站](https://www.jiangwt.org) | [GitHub](https://github.com/CBDT-JWT/lveying)
