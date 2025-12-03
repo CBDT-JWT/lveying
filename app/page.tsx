@@ -111,6 +111,10 @@ export default function Home() {
               <p className="text-gray-700 text-left">
                 “掠影”，寓意是“电子系同学的生活掠影”，代表着电子系学子日常里那些鲜活又珍贵的切片。而学生节，正是这些“生活掠影”的集中定格与温暖回响。这场以“掠影”为名的学生节，既是对过往时光的回望与致敬，也是对电子系独有的青春图景的生动呈现——那些零散却闪光的瞬间，终将串联成最珍贵的青春记忆，成为未来回望时最温暖的注脚。
               </p>
+              <br/>
+              <p className="text-gray-700 text-left">
+                更多信息敬请参考<a href="https://mp.weixin.qq.com/s/F_FFAVio_1wCcsqHtuzvAg">掠影 | 不要掠过那个瞬间</a>, <a href="https://mp.weixin.qq.com/s/TpUp6TUaaXE1UOsH5knKgg">掠影 | 主海报发布</a>, <a href="https://mp.weixin.qq.com/s/WKw7fFFJr_-eKgKdXBaYMQ">掠影 | 路演来啦！</a>。
+                </p>
             </div>
 
             {/* 快捷链接 */}
@@ -130,7 +134,7 @@ export default function Home() {
             </div> */}
 
             {/* 底部信息 */}
-            {/* <div className="text-center text-sm text-black pt-2">
+            {/*<div className="text-center text-sm text-black pt-2">
               <p>2025年12月5日</p>
               <br />
               <p>大礼堂</p>
