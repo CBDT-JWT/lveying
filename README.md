@@ -1,184 +1,91 @@
-# 晚会网站系统
+# 掠影 - 电子系第27届学生节晚会互动系统
 
-一个功能完整的晚会互动网站系统，包含Guest端和Admin端，支持抽奖、弹幕、节目进度管理等功能。
+掠影是一个专为清华大学电子系第27届学生节打造的全功能晚会互动网站系统。该系统包含观众端和管理端两个部分，为现场观众和后台工作人员提供了完整的互动体验。观众可以通过网站实时查看节目进度、参与弹幕互动、查看抽奖结果，而管理员则可以通过后台系统管理节目单、审核弹幕、配置和执行抽奖等操作。整个系统基于 Next.js 14 构建，采用现代化的技术栈，提供了流畅的用户体验和强大的管理功能。效果可以参考[Demo](https://www.lveying.live)。
 
-## 功能特性
+![alt text](image.png)
 
-### Guest端（观众端）
-- 🎨 **主页**：展示晚会海报，提供导航入口
-- 🎁 **抽奖显示**：实时查看中奖号码
-- 💬 **弹幕发送**：发送弹幕互动
-- 📋 **节目进度**：查看节目单和当前进度
-- 📱 **移动端适配**：完美支持手机访问
+## 核心功能
 
-### Admin端（管理员端）
-- 🔐 **安全登录**：密码认证 + JWT Token鉴权
-- 📋 **节目管理**：管理节目单和进度
-- 💬 **弹幕管理**：实时查看和管理弹幕
-- 🎁 **抽奖管理**：配置抽奖参数并进行抽奖
-- 🎲 **抽奖动画**：滚动数字动画效果
+本系统分为观众端和管理端两大模块，为不同角色提供针对性的功能支持。
 
-## 技术栈
+观众端为现场参与晚会的观众提供了丰富的互动功能。主页以精美的海报形式展示晚会信息，并提供清晰的导航入口。抽奖功能让观众能够实时查看中奖号码，每次抽奖都配有完整的历史记录和精美的背景图片。弹幕系统允许观众发送互动消息，每条弹幕经过审核后会在大屏幕上展示，营造热烈的现场氛围。节目进度页面实时显示当前正在进行的节目，观众可以查看完整的节目单和详细的演职人员信息。整个观众端完美适配移动设备，观众可以通过手机随时参与互动。
 
-- **框架**: Next.js 14 (App Router)
-- **语言**: TypeScript
-- **样式**: Tailwind CSS
-- **认证**: JWT + bcryptjs
-- **存储**: JSON文件持久化存储
+管理端为晚会工作人员提供了完善的后台管理功能。系统采用密码认证和 JWT Token 双重鉴权机制，确保管理功能的安全性。节目管理模块支持实时更新节目单、标记当前进行的节目、管理演职人员信息。弹幕管理功能让管理员能够实时查看所有弹幕，审核通过或拒绝特定弹幕，并可以封禁发送不当内容的 IP 地址。抽奖管理模块功能强大，管理员可以配置不同等级的奖项、设置中奖人数范围、上传背景图片，并使用专业的全屏抽奖页面进行抽奖，抽奖动画采用滚动数字效果，增强现场互动氛围。抽奖系统还具备离线队列功能，即使网络中断也能确保中奖结果不会丢失。
 
-## 安装和运行
+## 技术架构
 
-### 前提条件
+本系统采用现代化的前端技术栈构建。框架选用 Next.js 14，使用最新的 App Router 架构，充分利用服务端渲染和客户端渲染的优势。整个项目使用 TypeScript 编写，提供完整的类型安全保障。样式系统基于 Tailwind CSS，实现了响应式设计和美观的用户界面。用户认证采用 JWT 令牌机制，密码通过 bcryptjs 进行加密存储。数据持久化使用 JSON 文件存储方案，简单可靠，适合中小型晚会场景。系统还集成了 Markdown 渲染和 KaTeX 数学公式支持，可以展示格式丰富的内容。
 
-确保已安装 Node.js 18+ 和 npm。
+## 快速开始
 
-### 安装依赖
+在开始使用之前，请确保您的开发环境已安装 Node.js 18 或更高版本以及 npm 包管理器。首先克隆项目仓库到本地，然后在项目根目录下运行 `npm install` 安装所有依赖包。安装完成后，需要配置管理员密码。您可以使用 Node.js 命令生成密码哈希值：`node -e "const bcrypt = require('bcryptjs'); bcrypt.hash('your-password', 10).then(console.log);"`。将生成的哈希值和一个随机的 JWT 密钥添加到 `.env.local` 文件中。配置完成后，运行 `npm run dev` 启动开发服务器，访问 `http://localhost:3000` 即可看到系统主页。
 
-```bash
-npm install
-```
-
-### 配置环境变量
-
-编辑 `.env.local` 文件，设置管理员密码：
-
-```bash
-# 使用 bcrypt 生成密码哈希
-# 默认密码: admin123
-ADMIN_PASSWORD_HASH=$2a$10$YourHashHere
-JWT_SECRET=your-super-secret-jwt-key-change-this-in-production
-```
-
-### 生成密码哈希
-
-使用 Node.js 生成密码哈希：
-
-```bash
-node -e "const bcrypt = require('bcryptjs'); bcrypt.hash('your-password', 10).then(console.log);"
-```
-
-### 开发模式
-
-```bash
-npm run dev
-```
-
-访问 `http://localhost:3000`
-
-### 生产构建
-
-```bash
-npm run build
-npm start
-```
+对于生产环境部署，首先运行 `npm run build` 构建项目，然后使用 `npm start` 启动生产服务器。强烈建议在生产环境中使用 HTTPS 协议，修改默认管理员密码，并使用强随机字符串作为 JWT 密钥以确保系统安全。
 
 ## 使用指南
 
-### Guest端访问
+观众通过访问系统主页可以看到晚会海报和导航菜单。点击"节目进度"可以查看当前正在进行的节目和完整节目单，每个节目可以展开查看详细的演职人员信息。点击"抽奖"可以查看所有抽奖历史和中奖号码，每个奖项都有独立的展示页面。点击"弹幕"可以发送弹幕消息，输入限制为20个字符，每条弹幕都会记录发送者的 IP 地址用于审核，通过审核的弹幕会在大屏幕上实时展示。
 
-1. 访问主页: `http://localhost:3000`
-2. 扫描二维码或直接访问以下页面：
-   - 抽奖结果: `/lottery`
-   - 发送弹幕: `/danmaku`
-   - 节目进度: `/programs`
+管理员需要先访问 `/admin` 登录页面，输入管理员密码后进入控制台。控制台提供了前往各个管理模块的快捷入口。在节目管理页面，管理员可以添加新节目、编辑现有节目信息、标记当前正在进行的节目。在弹幕管理页面，可以查看所有待审核的弹幕，批量通过或拒绝弹幕，封禁发送不当内容的 IP。在抽奖管理页面，可以配置抽奖参数，如奖项名称、中奖人数范围、背景图片等，配置完成后可以打开全屏抽奖页面进行抽奖。抽奖页面支持键盘快捷键，按空格键开始抽奖，按数字键可以快速设置常用抽奖配置（0为特等奖1个，1为一等奖3个，2为二等奖10个，3为三等奖15个），按回车键确认中奖结果。系统会自动保存所有中奖记录，即使遇到网络问题也不会丢失数据。
 
-### Admin端访问
+## API 接口说明
 
-1. 访问管理员登录: `http://localhost:3000/admin`
-2. 输入管理员密码（默认：admin123）
-3. 进入控制台管理各项功能
+系统提供了丰富的 RESTful API 接口，分为公开接口和管理员接口两类。
 
-## API接口
+### 公开接口
 
-### 公开API
+以下接口无需认证，观众端可以直接调用：
 
-- `GET /api/programs` - 获取节目单
-- `GET /api/lottery/result` - 获取抽奖结果
-- `POST /api/danmaku` - 发送弹幕
-   - 注意：每条弹幕会记录发送者的IP地址，用于审核与日志，默认不会在公开接口中展示。
-      - 存储时会把一些代理返回的 IPv6 映射 IPv4（例如 `::ffff:1.2.3.4`）规范化为 `1.2.3.4`。
+| 方法 | 路径 | 说明 | 备注 |
+|------|------|------|------|
+| GET | `/api/programs` | 获取节目单 | 返回所有节目及当前进度 |
+| GET | `/api/lottery/result` | 获取抽奖结果 | 返回所有抽奖历史记录 |
+| GET | `/api/danmaku/censored` | 获取已审核的弹幕 | 仅返回已通过审核的弹幕 |
+| POST | `/api/danmaku` | 发送弹幕 | 自动记录发送者 IP，需审核后才公开展示 |
 
-### 管理员API（需要Token）
+**注意**：弹幕接口会记录发送者的 IP 地址用于审核和日志记录。系统会自动将 IPv6 映射的 IPv4 地址（如 `::ffff:1.2.3.4`）规范化为标准格式（`1.2.3.4`）。
 
-- `POST /api/admin/login` - 管理员登录
-- `POST /api/programs` - 更新节目单
-- `PATCH /api/programs` - 更新节目状态
-- `GET /api/danmaku` - 获取弹幕列表
-   - 管理员接口返回的弹幕包含发送者的IP（仅供管理员审核与日志使用）。
-   - 管理员可封禁 IP（`POST /api/admin/banned-ips` / `DELETE /api/admin/banned-ips`），被封禁的 IP 无法通过 `POST /api/danmaku` 发送弹幕。
-      - 管理员可封禁 IP（`POST /api/admin/banned-ips` / `DELETE /api/admin/banned-ips`），被封禁的 IP 无法通过 `POST /api/danmaku` 发送弹幕。封禁会自动取消该 IP 已审核的历史弹幕（不再公开展示）。
-- `DELETE /api/danmaku` - 清空弹幕
-- `GET /api/lottery/config` - 获取抽奖配置
-- `POST /api/lottery/config` - 更新抽奖配置
-- `POST /api/lottery/result` - 发布抽奖结果
+### 管理员接口
 
-## 目录结构
+以下接口需要在请求头中携带 JWT Token 进行认证（`Authorization: Bearer <token>`）：
 
-```
-lueying/
-├── app/                      # Next.js App Router
-│   ├── api/                  # API路由
-│   │   ├── admin/            # 管理员相关API
-│   │   ├── danmaku/          # 弹幕API
-│   │   ├── lottery/          # 抽奖API
-│   │   └── programs/         # 节目单API
-│   ├── admin/                # Admin端页面
-│   │   ├── dashboard/        # 控制台
-│   │   ├── programs/         # 节目管理
-│   │   ├── danmaku/          # 弹幕管理
-│   │   └── lottery/          # 抽奖管理
-│   ├── danmaku/              # Guest弹幕页面
-│   ├── lottery/              # Guest抽奖页面
-│   ├── programs/             # Guest节目页面
-│   ├── layout.tsx            # 根布局
-│   ├── page.tsx              # 主页
-│   └── globals.css           # 全局样式
-├── lib/                      # 工具库
-│   ├── auth.ts               # 认证工具
-│   └── dataStore.ts          # 数据存储
-├── types/                    # TypeScript类型定义
-│   └── index.ts
-├── package.json
-├── tsconfig.json
-├── tailwind.config.ts
-└── next.config.js
-```
+| 方法 | 路径 | 说明 | 备注 |
+|------|------|------|------|
+| POST | `/api/admin/login` | 管理员登录 | 接收密码，返回 JWT Token |
+| POST | `/api/programs/add` | 添加节目 | 添加新节目到节目单 |
+| POST | `/api/programs` | 更新节目状态 | 标记当前进行中的节目 |
+| GET | `/api/danmaku` | 获取所有弹幕 | 包含 IP 地址，用于审核 |
+| POST | `/api/danmaku/censored` | 审核弹幕 | 批量通过或拒绝弹幕 |
+| DELETE | `/api/danmaku` | 清空弹幕 | 删除所有弹幕记录 |
+| POST | `/api/admin/banned-ips` | 封禁 IP | 被封禁 IP 无法发送弹幕，已审核的历史弹幕也会被取消 |
+| DELETE | `/api/admin/banned-ips` | 解封 IP | 移除 IP 封禁 |
+| GET | `/api/lottery/config` | 获取抽奖配置 | 返回当前抽奖参数 |
+| POST | `/api/lottery/config` | 更新抽奖配置 | 设置奖项名称、人数、背景等 |
+| POST | `/api/lottery/result` | 保存抽奖结果 | 记录中奖号码 |
+| GET | `/api/lottery/history` | 获取抽奖历史 | 返回所有历史抽奖记录 |
 
-## 安全建议
+**认证说明**：所有管理员接口都需要有效的 JWT Token。Token 通过登录接口获取，有效期为 7 天。未授权的请求会返回 401 错误。
 
-1. **修改默认密码**：首次部署前务必修改 `.env.local` 中的管理员密码
-2. **JWT密钥**：使用强随机字符串作为JWT_SECRET
-3. **HTTPS**：生产环境使用HTTPS
-4. **数据库**：生产环境建议使用真实数据库替代内存存储
+## 项目结构
 
-## 扩展建议
+项目采用 Next.js 14 的 App Router 架构组织代码。`app` 目录包含所有页面和 API 路由，其中 `api` 子目录存放后端接口，按功能模块划分为 `admin`、`danmaku`、`lottery`、`programs` 等目录。`admin` 子目录包含所有管理端页面，包括登录页、控制台、节目管理、弹幕管理、抽奖管理等。观众端页面直接放在 `app` 目录下，包括主页、节目进度页、弹幕页、抽奖页等。`components` 目录存放可复用的 React 组件，如导航栏、Markdown 渲染器、演职人员展示组件等。`lib` 目录包含工具函数库，如认证工具（`auth.ts`）、数据存储工具（`dataStore.ts`）。`types` 目录定义了 TypeScript 类型接口。`data` 目录用于存储 JSON 数据文件。`public` 目录存放静态资源，如图片、字体等。`scripts` 目录包含构建和部署脚本。
 
-### 持久化存储
+## 扩展与优化建议
 
-当前使用内存存储，重启后数据会丢失。建议集成：
-- **SQLite**: 轻量级场景
-- **PostgreSQL/MySQL**: 生产环境
-- **MongoDB**: NoSQL方案
+当前系统使用 JSON 文件存储数据，适合中小型晚会场景，但重启服务器后数据会丢失。对于大型晚会或需要长期保存数据的场景，建议集成真实的数据库系统，如 PostgreSQL、MySQL 或 MongoDB。数据库不仅能提供持久化存储，还能支持更复杂的查询和并发控制。
 
-### 实时更新
+系统目前采用轮询方式获取最新数据，观众端每隔几秒请求一次 API。为了提供更流畅的实时体验，可以集成 WebSocket 或 Server-Sent Events（SSE）实现服务端推送。这样当有新弹幕、新节目或新抽奖结果时，服务器可以主动推送给客户端，减少网络请求，提升响应速度。
 
-集成WebSocket或Server-Sent Events实现：
-- 弹幕实时推送
-- 节目进度实时同步
-- 抽奖结果实时通知
+为了方便观众访问，可以为各个观众端页面生成二维码，打印出来或投影到大屏幕上，观众扫码即可快速进入相应页面。可以使用 `qrcode` 库实现二维码生成功能。
 
-### 二维码生成
+## 开源协议
 
-为Guest端页面生成二维码：
+本项目采用 MIT 开源协议，您可以自由使用、修改和分发本项目代码。
 
-```bash
-npm install qrcode
-```
+## 作者信息
 
-## License
+本系统由江玮陶开发，为清华大学电子系第27届学生节"掠影"晚会提供技术支持。项目源码托管在 GitHub 上，欢迎提出问题和建议。
 
-MIT
+---
 
-## 作者
-
-晚会网站系统 © 2025
+© 2025 江玮陶 | [个人网站](https://www.jiangwt.org) | [GitHub](https://github.com/CBDT-JWT/lveying)

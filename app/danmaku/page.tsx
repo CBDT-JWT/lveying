@@ -3,7 +3,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import Image from 'next/image';
 import GuestNavBar from '@/components/GuestNavBar';
-import BuildTime from '@/components/BuildTime';
 
 interface Danmaku {
   id: string;
@@ -234,10 +233,6 @@ export default function DanmakuPage() {
             © 2025 <a href="https://www.jiangwt.org" target="_blank" rel="noopener noreferrer" className="hover:underline">江玮陶</a>
             {' | '}
             <a href="https://github.com/CBDT-JWT/lveying" target="_blank" rel="noopener noreferrer" className="hover:underline">Github</a>
-            {' | '}
-            <span className="text-xs">
-              <BuildTime />
-            </span>
           </p>
         </div>
       </div>

@@ -3,7 +3,6 @@
 import GuestNavBar from '@/components/GuestNavBar';
 import Image from 'next/image';
 import { useState } from 'react';
-import BuildTime from '@/components/BuildTime';
 
 interface FlyingS {
   id: number;
@@ -187,8 +186,6 @@ export default function Home() {
             © 2025 <a href="https://www.jiangwt.org" target="_blank" rel="noopener noreferrer" className="hover:underline">江玮陶</a>
             {' | '}
             <a href="https://github.com/CBDT-JWT/lveying" target="_blank" rel="noopener noreferrer" className="hover:underline">Github</a>
-            {' | '}
-            <BuildTime />
           </p>
         </div>
       </div>
