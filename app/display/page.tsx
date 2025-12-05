@@ -69,9 +69,10 @@ export default function DisplayPage() {
             className={`${index > 0 ? 'border-t border-gray-400 pt-1' : ''}`}
           >
             <div
-              className="text-4xl font-medium animate-slideIn"
+              className="font-medium animate-slideIn"
               style={{
                 animationDelay: `${index * 0.05}s`,
+                fontSize: '2.7rem',
                 lineHeight: '1.5',
                 textShadow: '2px 2px 4px rgba(0, 0, 0, 0.8), -1px -1px 2px rgba(0, 0, 0, 0.6)'
               }}
