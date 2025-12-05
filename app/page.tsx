@@ -111,6 +111,20 @@ export default function Home() {
                 “掠影”，寓意是“电子系同学的生活掠影”，代表着电子系学子日常里那些鲜活又珍贵的切片。而学生节，正是这些“生活掠影”的集中定格与温暖回响。这场以“掠影”为名的学生节，既是对过往时光的回望与致敬，也是对电子系独有的青春图景的生动呈现——那些零散却闪光的瞬间，终将串联成最珍贵的青春记忆，成为未来回望时最温暖的注脚。
               </p>
               <br/>
+
+<div class="flex justify-center w-full">
+  <div class="w-full max-w-3xl aspect-video">
+    <iframe
+      src="//player.bilibili.com/player.html?isOutside=true&aid=115664727578611&bvid=BV1Sm25BzESZ&cid=34502086518&p=1"
+      class="w-full h-full rounded-xl shadow-lg"
+      scrolling="no"
+      frameBorder="0"
+      allowFullScreen
+    ></iframe>
+  </div>
+</div>
+
+            <div className="border-t border-black/30 pt-4"></div>
               <p className="text-gray-700 text-left text-bold">
                 <a href="https://mp.weixin.qq.com/s/F_FFAVio_1wCcsqHtuzvAg" className="font-bold underline" style={{ color: 'rgb(96, 71, 25)' }}>掠影 | 不要掠过那个瞬间</a><br/>
                  <a href="https://mp.weixin.qq.com/s/TpUp6TUaaXE1UOsH5knKgg" className="font-bold underline "style={{ color: 'rgb(96, 71, 25)' }}>掠影 | 主海报发布</a><br/>
@@ -122,21 +136,23 @@ export default function Home() {
                 </p>
             </div>
 
-            {/* 快捷链接 */}
-            {/* <div className="grid grid-cols-2 gap-3 pt-2">
-              <a 
-                href="/programs" 
-                className="block text-center bg-gradient-to-r from-green-500 to-emerald-500 text-white py-3 px-4 rounded-lg font-semibold hover:shadow-lg transition-all"
-              >
-                📋 节目单
-              </a>
-              <a 
-                href="/lottery" 
-                className="block text-center bg-gradient-to-r from-purple-500 to-pink-500 text-white py-3 px-4 rounded-lg font-semibold hover:shadow-lg transition-all"
-              >
-                🎁 抽奖
-              </a>
-            </div> */}
+
+
+{/* 快捷链接（居中） */}
+{/* <div className="grid grid-cols-2 gap-3 pt-4 max-w-md mx-auto">
+  <a
+    href="/programs"
+    className="block text-center bg-gradient-to-r from-green-500 to-emerald-500 text-white py-3 px-4 rounded-lg font-semibold hover:shadow-lg transition-all"
+  >
+    📋 节目单
+  </a>
+  <a
+    href="/lottery"
+    className="block text-center bg-gradient-to-r from-purple-500 to-pink-500 text-white py-3 px-4 rounded-lg font-semibold hover:shadow-lg transition-all"
+  >
+    🎁 抽奖
+  </a>
+</div>*/} 
 
             {/* 底部信息 */}
             {/*<div className="text-center text-sm text-black pt-2">
