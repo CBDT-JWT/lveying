@@ -72,7 +72,7 @@ export default function DisplayPage() {
               className="font-medium animate-slideIn"
               style={{
                 animationDelay: `${index * 0.05}s`,
-                fontSize: '2.7rem',
+                fontSize: '4.05rem',
                 lineHeight: '1.5',
                 textShadow: '2px 2px 4px rgba(0, 0, 0, 0.8), -1px -1px 2px rgba(0, 0, 0, 0.6)'
               }}
