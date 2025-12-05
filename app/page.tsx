@@ -112,11 +112,11 @@ export default function Home() {
               </p>
               <br/>
 
-<div class="flex justify-center w-full">
-  <div class="w-full max-w-3xl aspect-video">
+<div className="flex justify-center w-full">
+  <div className="w-full max-w-3xl aspect-video">
     <iframe
       src="//player.bilibili.com/player.html?isOutside=true&aid=115664727578611&bvid=BV1Sm25BzESZ&cid=34502086518&p=1"
-      class="w-full h-full rounded-xl shadow-lg"
+      className="w-full h-full rounded-xl shadow-lg"
       scrolling="no"
       frameBorder="0"
       allowFullScreen
