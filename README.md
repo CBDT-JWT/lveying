@@ -14,6 +14,112 @@
 管理端为晚会工作人员提供了完善的后台管理功能。系统采用密码认证和 JWT Token 双重鉴权机制，确保管理功能的安全性。节目管理模块支持实时更新节目单、标记当前进行的节目、管理演职人员信息。弹幕管理功能让管理员能够实时查看所有弹幕，审核通过或拒绝特定弹幕，并可以封禁发送不当内容的 IP 地址。抽奖管理模块功能强大，管理员可以配置不同等级的奖项、设置中奖人数范围、上传背景图片，并使用专业的全屏抽奖页面进行抽奖，抽奖动画采用滚动数字效果，增强现场互动氛围。抽奖系统还具备离线队列功能，即使网络中断也能确保中奖结果不会丢失。
 
 ![](assets/mac.jpeg)
+
+## 如果你想给你的院系学生节部署这一系统
+
+### 安装和启动
+
+0. star此项目（非必须；**建议**），购买域名和服务器。如果需要备案，则完成备案流程。然后设置DNS解析。（以上在域名提供商的网站上完成）
+
+1. 进入服务器。设置部署变量，引号内改成你的域名和端口
+```bash
+export DOMAIN="your-domain.com"
+export PORT="8880"
+```
+
+2. 安装 Node.js、npm、Nginx 和 PM2
+```bash
+sudo apt update
+sudo apt install -y curl nginx
+curl -fsSL https://deb.nodesource.com/setup_20.x | sudo -E bash -
+sudo apt install -y nodejs
+sudo npm install -g pm2
+node -v
+npm -v
+nginx -v
+pm2 -v
+```
+
+3. 下载项目并安装依赖
+```bash
+git clone https://github.com/CBDT-JWT/lveying
+cd lveying
+npm install
+```
+
+4. 生成生产环境配置文件
+```bash
+printf "JWT_SECRET=%s\n" "$(openssl rand -hex 32)" > .env.local
+printf "NEXT_PUBLIC_BUILD_TIME=%s\n" "$(date '+%Y-%m-%d %H:%M:%S')" >> .env.local
+cat .env.local
+```
+
+5. 构建并启动项目
+```bash
+npm run build
+PORT="$PORT" pm2 start npm --name lveying -- start
+pm2 save
+pm2 startup
+```
+
+6. 配置 Nginx 反向代理
+```bash
+sudo tee /etc/nginx/sites-available/lveying > /dev/null <<EOF
+server {
+    listen 80;
+    server_name $DOMAIN;
+
+    location / {
+        proxy_pass http://127.0.0.1:$PORT;
+        proxy_http_version 1.1;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection "upgrade";
+    }
+}
+EOF
+sudo ln -sf /etc/nginx/sites-available/lveying /etc/nginx/sites-enabled/lveying
+sudo rm -f /etc/nginx/sites-enabled/default
+sudo nginx -t
+sudo systemctl enable nginx
+sudo systemctl restart nginx
+```
+
+7. 打开网站，首次登录后台后修改管理员密码
+```bash
+echo "前台首页: http://$DOMAIN"
+echo "后台地址: http://$DOMAIN/admin"
+echo "默认管理员账号: admin"
+echo "默认管理员密码: admin123"
+```
+
+8. 如果你已经解析好了域名，继续一键配置 HTTPS
+```bash
+sudo apt install -y certbot python3-certbot-nginx
+sudo certbot --nginx -d "$DOMAIN"
+```
+
+### 修改网站内容
+
+网站内的视觉素材可以在`public`文件夹下找到并更改。
+-  `max1-4.jpg`: 抽奖拍立得效果的背景图
+-  `poster.png`: 学生节海报，将在首页展示
+-  `lotterybg.png`: 抽奖大背景（主投）
+-  `guestbg.jpg`: 客户端背景图
+-  `favicon.jpg`: 网站缩略图
+-  `danmakubg.jpg`: 弹幕展示背景图（侧投）
+
+工作人员名单在`public/credits.md`更改。
+
+文案可以在`app/page.tsx`修改。若不熟悉语法，建议将文案发送给ai进行修改。
+
+### 现场
+
+使用OBS来装侧投弹幕(`your-domain.com/display`)并串流即可。
+
 ## 技术架构
 
 本系统采用现代化的前端技术栈构建。框架选用 Next.js 14，使用最新的 App Router 架构，充分利用服务端渲染和客户端渲染的优势。整个项目使用 TypeScript 编写，提供完整的类型安全保障。样式系统基于 Tailwind CSS，实现了响应式设计和美观的用户界面。用户认证采用 JWT 令牌机制，密码通过 bcryptjs 进行加密存储。数据持久化使用 JSON 文件存储方案，简单可靠，适合中小型晚会场景。系统还集成了 Markdown 渲染和 KaTeX 数学公式支持，可以展示格式丰富的内容。
@@ -491,5 +597,3 @@ lueying/
 **抽奖动画** (`app/admin/lottery/display/page.tsx`): 实现了完整的抽奖动画效果，支持键盘快捷键、离线队列、滚动数字动画等高级功能。
 
 **弹幕系统**: 包含发送、审核、展示三个部分，支持 IP 封禁和自动规范化 IPv6 地址。
-
-
