@@ -124,6 +124,12 @@ sudo certbot --nginx -d "$DOMAIN"
 
 本系统采用现代化的前端技术栈构建。框架选用 Next.js 14，使用最新的 App Router 架构，充分利用服务端渲染和客户端渲染的优势。整个项目使用 TypeScript 编写，提供完整的类型安全保障。样式系统基于 Tailwind CSS，实现了响应式设计和美观的用户界面。用户认证采用 JWT 令牌机制，密码通过 bcryptjs 进行加密存储。数据持久化使用 JSON 文件存储方案，简单可靠，适合中小型晚会场景。系统还集成了 Markdown 渲染和 KaTeX 数学公式支持，可以展示格式丰富的内容。
 
+## License
+
+本项目采用仓库根目录中的自定义许可证 [LICENSE](/Users/weitaojiang/Documents/projects/lueying/LICENSE)。
+
+特别要求：任何院系或组织在使用、部署、修改本网站时，不得删除、隐藏或替换作者署名、版权信息以及指向 `www.weitao-jiang.cn` 的个人网站链接。基于本项目进行二次开发、再发布或运营时，相关修改内容、运营行为以及弹幕等用户生成内容的审核责任均由实际使用方承担，与原作者无关。
+
 ## 快速开始
 
 在开始使用之前，请确保您的开发环境已安装 Node.js 18 或更高版本以及 npm 包管理器。首先克隆项目仓库到本地，然后在项目根目录下运行 `npm install` 安装所有依赖包。安装完成后，需要配置管理员密码。您可以使用 Node.js 命令生成密码哈希值：`node -e "const bcrypt = require('bcryptjs'); bcrypt.hash('your-password', 10).then(console.log);"`。将生成的哈希值和一个随机的 JWT 密钥添加到 `.env.local` 文件中。配置完成后，运行 `npm run dev` 启动开发服务器，访问 `http://localhost:8880` 即可看到系统主页。

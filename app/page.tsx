@@ -176,7 +176,7 @@ export default function Home() {
         {/* 制作信息 */}
         <div className="text-center mt-4 pb-4">
           <p className="text-sm text-gray-800 drop-shadow-md">
-            © 2025 <a href="https://www.jiangwt.org" target="_blank" rel="noopener noreferrer" className="hover:underline">江玮陶</a>
+            © 2025 <a href="https://www.weitao-jiang.cn" target="_blank" rel="noopener noreferrer" className="hover:underline">江玮陶</a>
             {' | '}
             <a href="https://github.com/CBDT-JWT/lveying" target="_blank" rel="noopener noreferrer" className="hover:underline">Github</a>
           </p>
